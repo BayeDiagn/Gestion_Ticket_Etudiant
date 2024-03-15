@@ -14,7 +14,7 @@ from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
 from rest_framework.decorators import action
 from rest_framework import status
-from django.contrib.auth.views import LoginView,PasswordChangeView,PasswordResetCompleteView
+from django.contrib.auth.views import LoginView,PasswordChangeView,PasswordResetCompleteView,PasswordResetView,PasswordResetDoneView
 from django.views.generic import DetailView
 from django.contrib.auth.decorators import login_required,user_passes_test
 from django.utils.decorators import method_decorator
@@ -119,11 +119,11 @@ class EtudiantDetailView(DetailView):
 #Changement mot de passe
 class EtudiantPasswordChangeView(PasswordChangeView):
     template_name = "Etudiants/etudiant_changedPassword.html"
-    success_url=reverse_lazy('password_changed')
+    success_url=reverse_lazy('password_reset_complete')
 
 
 #Page vue apres changement
-@method_decorator(etudiant_required, name='dispatch')
+#@method_decorator(etudiant_required, name='dispatch')
 class EtudiantPasswordResetCompleteView(PasswordResetCompleteView):
     template_name = "Etudiants/etudiant_passwordComplet.html"
     
@@ -139,6 +139,18 @@ def etudiant_transaction(request):
     
     context = {}
     return render(request,'Etudiants/etudiant_transaction.html',context)
+
+
+
+class MyPasswordRestView(PasswordResetView):
+    template_name='Etudiants/etudiant_resetPassword.html'
+    #success_url = reverse_lazy('password_reset_complete')
+    
+
+class MyPasswordResetDoneView(PasswordResetDoneView):
+    #form_class=PasswordResetForm
+    template_name='Etudiants/etudiant_emailSend.html'
+    
 
 
 

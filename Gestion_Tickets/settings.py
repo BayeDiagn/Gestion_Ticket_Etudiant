@@ -26,7 +26,7 @@ SECRET_KEY = 'django-insecure-qj1*1^$#qp#+bc=sj-d^x8%+*!ohpqh2b9twme!&k%t!(i(=^o
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['192.168.1.4']
+ALLOWED_HOSTS = ['192.168.1.13']
 
 
 # Application definition
@@ -142,3 +142,10 @@ AUTH_USER_MODEL='Admin.User'
 
 
 LOGIN_URL = "login_etudiant"
+
+
+
+EMAIL_HOST = 'sandbox.smtp.mailtrap.io'
+EMAIL_HOST_USER = 'f7e34b8aa0a529'
+EMAIL_HOST_PASSWORD = 'e6e4d4e74cd32e'
+EMAIL_PORT = '2525'
