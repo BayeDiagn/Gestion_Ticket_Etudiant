@@ -1,0 +1,120 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+  <!-- Required meta tags -->
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <title>Uadb Gestion de Tickets</title>
+  <!-- plugins:css -->
+  <link rel="stylesheet" href="{% static "vendors/feather/feather.css" %}">
+  <link rel="stylesheet" href="{% static "vendors/ti-icons/css/themify-icons.css" %}">
+  <link rel="stylesheet" href="{% static "vendors/css/vendor.bundle.base.css" %}">
+  <!-- endinject -->
+  <!-- Plugin css for this page -->
+  <link rel="stylesheet" href="{% static "vendors/datatables.net-bs4/dataTables.bootstrap4.css" %}">
+  <link rel="stylesheet" href="{% static "vendors/ti-icons/css/themify-icons.css" %}">
+  <link rel="stylesheet" type="text/css" href="{% static "js/select.dataTables.min.css" %}">
+  <!-- End plugin css for this page -->
+  <!-- inject:css -->
+  <link rel="stylesheet" href="{% static "css/vertical-layout-light/style.css" %}">
+  <link rel="stylesheet" href="{% static "css/Mystyle.css" %}">
+
+  <link rel="stylesheet" href="{% static "css/all.min.css" %}">
+  <script src="{% static "js/all.min.js" %}"></script>
+  <!-- endinject -->
+  <!--link rel="shortcut icon" href="images/favicon.png" /-->
+
+</head>
+ 
+
+<body>
+  <div class="container-scroller">
+ <!-- partial:partials/_navbar.html -->
+
+    {% block navbar %}
+
+    {% endblock %}
+
+    <!-- partial -->
+    <div class="container-fluid page-body-wrapper">
+      <nav class="sidebar sidebar-offcanvas" id="sidebar" style="z-index: 150;">
+        <ul class="nav">
+          <li class="nav-item" >
+            <a id="Accueil" style="font-weight:600"  href="{% url 'home_etudiant'%}" class="nav-link {% if request.resolver_match.url_name == 'home_etudiant' or request.resolver_match.url_name == 'detail_etudiant' %} bg-primary text-white{% endif %}" >
+              <i  class="icon-grid menu-icon {% if request.resolver_match.url_name == 'home_etudiant' or request.resolver_match.url_name == 'detail_etudiant' %} bg-primary text-white{% endif %}"></i>
+              <span class="menu-title" >Accueil</span>
+            </a>
+          </li>
+          
+          <li class="nav-item">
+            <a id="transaction" style="font-weight:600" class="nav-link {% if request.resolver_match.url_name == 'transaction_etudiant' %} bg-primary text-white{% endif %}" href="{% url "transaction_etudiant" %}">
+              <i class="icon-bar-graph menu-icon {% if request.resolver_match.url_name == 'transaction_etudiant' %} bg-primary text-white{% endif %}" href="{% url "transaction_etudiant" %}"></i>
+              <span class="menu-title">Mes transactions</span>
+            </a>
+          </li>
+        </ul>
+      </nav>
+
+      <!-- partial -->
+      <div class="main-panel">
+        <div class="content-wrapper">
+                    
+            {% block contenu %}
+
+            {% endblock %}
+        
+        </div>
+        <!-- content-wrapper ends -->
+
+        <!-- partial:partials/_footer.html -->
+        <footer class="footer pt-50">
+          <div class="d-sm-flex justify-content-center justify-content-sm-between">
+            <span class="text-muted text-center text-sm-left d-block d-sm-inline-block">Copyright © 2023. All rights reserved.</span>
+            <span class="float-none float-sm-right d-block mt-1 mt-sm-0 text-center">@Baye_Diagne made with <i class="ti-heart text-danger ml-1"></i></span>
+          </div>
+        </footer>
+        <!-- partial -->
+      </div>
+      <!-- main-panel ends -->
+
+    </div>   
+    <!-- page-body-wrapper ends -->
+  </div>
+  <!-- container-scroller -->
+
+  <!-- plugins:js -->
+  <script src="{% static "vendors/js/vendor.bundle.base.js" %}"></script>
+  <!-- endinject -->
+  <!-- Plugin js for this page -->
+  <script src="{% static "vendors/chart.js/Chart.min.js" %}"></script>
+  <script src="{% static "vendors/datatables.net/jquery.dataTables.js" %}"></script>
+  <script src="{% static "vendors/datatables.net-bs4/dataTables.bootstrap4.js" %}"></script>
+  <script src="{% static "js/dataTables.select.min.js" %}"></script>
+
+  <!-- End plugin js for this page -->
+  <!-- inject:js -->
+  <script src="{% static "js/off-canvas.js" %}"></script>
+  <script src="{% static "js/hoverable-collapse.js" %}"></script>
+  <script src="{% static "js/template.js" %}"></script>
+  <script src="{% static "js/settings.js" %}"></script>
+  <script src="{% static "js/todolist.js" %}"></script>
+  <!-- endinject -->
+  <!-- Custom js for this page-->
+  <script src="{% static "js/dashboard.js" %}"></script>
+  <script src="{% static "js/Chart.roundedBarCharts.js" %}"></script>
+  <!-- End custom js for this page-->
+
+{% comment %} <script>
+  document.addEventListener('DOMContentLoaded', function() {
+      var petitsDejInput = document.getElementById("Accueil");
+      petitsDejInput.focus();
+  }); 
+
+</script> {% endcomment %}
+
+</body>
+
+</html>
+
