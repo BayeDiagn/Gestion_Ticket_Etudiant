@@ -36,6 +36,7 @@ def etudiant_required(view_func):
     return decorated_view_func
 
 
+
 #Accueil
 @etudiant_required
 @login_required
@@ -49,50 +50,13 @@ def etudiant_home(request):
     tickets_repas_etudiant = Ticket_Repas.objects.filter(etudiant=etudiant)
     nbre_tickets_repas = int(sum(ticket.nbre_tickets_repas for ticket in tickets_repas_etudiant))
     
-    #print(nbre_total_tickets_dej)
-    
-    #img = qrcode.make('1505378')
-    #img.save('code_p.png')
-    #Cap = cv2.VideoCapture(0)
-    #Cap.set(5,640)
-    #Cap.set(6,480)
-    
-    #camera = True
-    #while camera == True:
-        #success , frame = Cap.read()
-        #for elmt in decode(frame):
-            #print(elmt.type)
-           # print(elmt.data.decode('utf-8'))
-            
-            
-           # etudiant = Etudiant.objects.get(code_permenant=elmt.data.decode('utf-8'))
-            #date = datetime.datetime.now()
-    #         heure=date.strftime('%H')
-            
-    #         #print(heure)
-    #         if int(heure) >= 6 and int(heure) <= 11:
-    #             etudiant.decrementer_ticket_dej()
-        
-    #         if (int(heure) >= 12 and int(heure) <= 14) or (int(heure) >= 18 and int(heure) <= 21):
-    #                 etudiant.decrementer_ticket_repas()
-    #         time.sleep(5)
-    
-    # #print(etudiant.code_qr.url)
-    # #print(etudiant.code_qr.path)
-    
-    #         cv2.imshow('testing code scan', frame)
-    #         cv2.waitKey(3)
-                
-    #etudiant = Etudiant.objects.get(id=6)
-    #d = cv2.QRCodeDetector()
- 
-    #Val , points , data = d.detectAndDecode(cv2.imread(etudiant.code_qr.path))
-    #print(Val)
-    
     
     
     context = {"nbre_tickets_dej":nbre_tickets_dej,"nbre_tickets_repas":nbre_tickets_repas}
     return render(request,'Etudiants/etudiant_home.html',context)
+
+
+
 
 #login
 class EtudiantLoginView(LoginView):
@@ -102,11 +66,13 @@ class EtudiantLoginView(LoginView):
         return reverse_lazy('home_etudiant')
 
 
+
 #view de deconnexion
 def etudiant_deconnected(request):
     logout(request)
     
     return redirect("login_etudiant")
+
 
 
 #Detail_etudiant
@@ -115,11 +81,13 @@ class EtudiantDetailView(DetailView):
     template_name = "Etudiants/etudiant_profil.html"
     model = Etudiant
  
+ 
     
 #Changement mot de passe
 class EtudiantPasswordChangeView(PasswordChangeView):
     template_name = "Etudiants/etudiant_changedPassword.html"
     success_url=reverse_lazy('password_reset_complete')
+
 
 
 #Page vue apres changement
@@ -144,11 +112,10 @@ def etudiant_transaction(request):
 
 class MyPasswordRestView(PasswordResetView):
     template_name='Etudiants/etudiant_resetPassword.html'
-    #success_url = reverse_lazy('password_reset_complete')
+    
     
 
 class MyPasswordResetDoneView(PasswordResetDoneView):
-    #form_class=PasswordResetForm
     template_name='Etudiants/etudiant_emailSend.html'
     
 
@@ -187,37 +154,38 @@ class EtudiantViewset(ModelViewSet):
                     status=status.HTTP_404_NOT_FOUND)
         
         
-        date = datetime.datetime.now()
-        heure = date.strftime('%H')
-        #mn = date.strftime('%M')
+        heure = datetime.datetime.now().hour
         
         
         #decrementer ticket dej
-        if(int(heure)>=6 and int(heure)<=13):
+        if (heure)>=6 and int(heure)<=11:
             try:
                 ticketDej =  Ticket_Dej.objects.get(etudiant=etudiant)
                 if ticketDej.nbre_tickets_dej > 0:
                     etudiant.decrementer_ticket_dej()
-                    return Response({"message": "Décrémentation réussie","code_permenant": ticketDej.etudiant.identifiant})
+                    return Response({"message": "Decrementation reussie!!","code_permenant": ticketDej.etudiant.identifiant})
                 else:
-                    return Response({"error": "Pas de tickets déjeuner pour cet(te) étudiant(e)"}, status=status.HTTP_404_NOT_FOUND)
+                    return Response({"error": "Aucun ticket petit-dejeuner!!"}, status=status.HTTP_404_NOT_FOUND)
             except Ticket_Dej.DoesNotExist:
-                return Response({'error': 'Pas de tickets déjeuner pour cet(te) etudiant(e)'},
+                return Response({'error': 'Aucun ticket petit-dejeuner!!'},
                     status=status.HTTP_404_NOT_FOUND)
-         
-         
+        
+        
         #decrementer ticket repas  
-        if (int(heure)>=13) and (int(heure)<=15) or (int(heure)>=18 and int(heure)<=22):
-            try:
-                ticketRepas =  Ticket_Repas.objects.get(etudiant=etudiant)
-                if ticketRepas.nbre_tickets_repas > 0:
-                    etudiant.decrementer_ticket_repas()
-                    return Response({"message": "Décrémentation réussie","code_permenant": ticketRepas.etudiant.identifiant})
-                else:
-                    return Response({"error": "Pas de tickets repas pour cet(te) étudiant(e)"}, status=status.HTTP_404_NOT_FOUND)
-            except Ticket_Repas.DoesNotExist:
-                return Response({'error': 'Pas de tickets repas pour cet(te) etudiant(e)'},
+        elif (heure)>=12 and (heure)<=15 or (heure)>=18 and int(heure)<=23:
+                try:
+                    ticketRepas =  Ticket_Repas.objects.get(etudiant=etudiant)
+                    if ticketRepas.nbre_tickets_repas > 0:
+                        etudiant.decrementer_ticket_repas()
+                        return Response({"message": "Decrementation reussie!!","code_permenant": ticketRepas.etudiant.identifiant})
+                    else:
+                        return Response({"error": "Aucun ticket dejeuner!!"}, status=status.HTTP_404_NOT_FOUND)
+                except Ticket_Repas.DoesNotExist:
+                    return Response({"error": "Aucun ticket dejeuner!!"},
                     status=status.HTTP_404_NOT_FOUND)
+        else:
+            return Response({"error": "Hors delai!!"}, status=status.HTTP_404_NOT_FOUND)
+         
             
         # Sérialiser les détails de l'étudiant
         serializer = self.get_serializer(etudiant)
