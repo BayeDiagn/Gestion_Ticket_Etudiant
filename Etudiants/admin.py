@@ -25,9 +25,11 @@ class Ticket_Dej_Add(admin.TabularInline):
 
 @admin.register(Etudiant)
 class Etudiants(admin.ModelAdmin):
-    list_display=('identifiant','first_name','last_name','email','is_etudiant')
-    #list_filter=('code_permenant','first_name','last_name','email',)
+    list_display=('identifiant','first_name','last_name','email','is_etudiant','date_joined')
+    list_filter=('identifiant','first_name','last_name')
     search_fields=('identifiant', )
+    ordering = ('identifiant',)
+    list_per_page = 5
     inlines=(Ticket_Repas_Add, Ticket_Dej_Add)
 
 

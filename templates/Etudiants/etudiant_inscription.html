@@ -1,0 +1,118 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+  <!-- Required meta tags -->
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <title>Gestion Tickets</title>
+  <!-- plugins:css -->
+  <link rel="stylesheet" href="{% static "vendors/feather/feather.css" %}">
+  <link rel="stylesheet" href="{% static "vendors/ti-icons/css/themify-icons.css" %}">
+  <link rel="stylesheet" href="{% static "vendors/css/vendor.bundle.base.css" %}">
+  <!-- inject:css -->
+  <link rel="stylesheet" href="{% static "css/vertical-layout-light/style.css" %}">
+  <link rel="stylesheet" href="{% static "css/Mystyle.css" %}">
+  <!-- endinject -->
+  <!--link rel="shortcut icon" href="images/favicon.png" /-->
+
+</head>
+
+<body>
+    <div class="container-scroller">
+      <div class="container-fluid page-body-wrapper full-page-wrapper">
+        <div class="content-wrapper d-flex align-items-center auth px-0">
+          <div class="row w-100 mx-0">
+            <div class="col-lg-6 mx-auto" >
+              <div class="auth-form-light text-left py-5 px-4 px-sm-5">
+                <div class="brand-logo" style="margin-left:150px; margin-top:-20px">
+                  <img src="{% static "images/uadb.png" %}" alt="logo">
+                </div>
+                <h4 style="font-weight: 600; margin-left:50px; padding-bottom:6px; margin-top:-14px "class="text-primary">Créez un compte pour accéder à la plateforme d’achat de tickets de restauration étudiante.</h4>
+                <form class="pt-3" method="POST">
+                    {% csrf_token %} 
+                  <div class="form-group">
+                    <input type="text" class="form-control form-control-sm border-3 rounded shadow-sm " name="first_name" value="{{ request.POST.first_name }}" placeholder="Votre Prénom" Required>
+                    {% if form.first_name.errors %}
+                        <p class="font-weight-light text-danger">{{ form.first_name.errors.0}}</p>  
+                    {% endif %}
+                  </div>
+
+                  <div class="form-group">
+                    <input type="text" class="form-control form-control-sm border-3 rounded shadow-sm" name="last_name" value="{{ request.POST.last_name}}" placeholder="Votre Nom" Required> 
+                    {% if form.last_name.errors %}
+                        <p class="font-weight-light text-danger ">{{ form.last_name.errors.0}}</p>  
+                    {% endif %}
+                 </div>
+
+                  <div class="form-group">
+                    <input type="text" class="form-control form-control-sm border-3 rounded shadow-sm" name="identifiant" onkeyup="calculateTotal()" onkeypress="return isPositiveInteger(event)" value="{{ request.POST.identifiant}}" placeholder="Votre Code Permenant" Required> 
+                    {% if form.identifiant.errors %}
+                        <p class="font-weight-light text-danger ">{{ form.identifiant.errors.0}}</p>  
+                    {% endif %}
+                 </div>
+
+                  <div class="form-group">
+                    <input type="email" class="form-control form-control-sm border-3 rounded shadow-sm" name="email" value="{{ request.POST.email }}" placeholder="Votre Adresse Email" Required> 
+                    {% if form.email.errors %}
+                        <p class="font-weight-light text-danger ">{{ form.email.errors.0}}</p>  
+                    {% endif %}
+                  </div>
+                  
+                  <div class="form-group">
+                    <input type="password" class="form-control form-control-sm border-3 rounded shadow-sm" name="password1" placeholder="Votre mot de passe" Required> 
+                    {% if form.password1.errors %}
+                        <p class="font-weight-light text-danger ">{{ form.password1.errors.0}}</p>  
+                    {% endif %}
+                  </div>
+
+                  <div class="form-group">
+                    <input type="password" class="form-control form-control-sm border-3 rounded shadow-sm" name="password2" placeholder="Confirmation du mot de passe" Required> 
+                    {% if form.password2.errors %}
+                        <p class="font-weight-light text-danger ">{{ form.password2.errors.0}}</p>  
+                    {% endif %}
+                  </div>
+
+                  <div class="mt-3">
+                    <button type="submit" class="btn btn-block btn-primary btn-lg font-weight-medium auth-form-btn">S'inscrire</button>
+                  </div>
+                </form>
+              </div>
+            </div>
+          </div>
+        </div>
+        <!-- content-wrapper ends -->
+      </div>
+      <!-- page-body-wrapper ends -->
+    </div>
+    <!-- container-scroller -->
+
+    <script>
+      function isPositiveInteger(event) {
+        // Récupérer le code de la touche enfoncée
+        var keyCode = event.which ? event.which : event.keyCode;
+    
+        // Autoriser uniquement les touches numériques (0-9) et la touche Supprimer
+        if ((keyCode >= 48 && keyCode <= 57) || keyCode === 8) {
+            return true;
+        } else {
+            // Empêcher la saisie de tout autre caractère
+            event.preventDefault();
+            return false;
+        }
+    }
+    </script>
+
+ <!-- plugins:js -->
+ <script src="{% static "vendors/js/vendor.bundle.base.js" %}"></script>
+ <!-- inject:js -->
+ <script src="{% static "js/off-canvas.js" %}"></script>
+ <script src="{% static "js/hoverable-collapse.js" %}"></script>
+ <script src="{% static "js/template.js" %}"></script>
+ <script src="{% static "js/settings.js" %}"></script>
+ <script src="{% static "js/todolist.js" %}"></script>
+ <!-- endinject -->
+
+</body>
+</html>  

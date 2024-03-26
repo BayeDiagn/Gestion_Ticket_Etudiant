@@ -47,13 +47,21 @@
               <span class="menu-title" >Accueil</span>
             </a>
           </li>
-          
+         
+          <li class="nav-item">
+            <a id="send_tiket" style="font-weight:600" class="nav-link {% if request.resolver_match.url_name == 'sendticket' %} bg-primary text-white{% endif %}" href="{% url "sendticket" %}">
+              <i class="fa-regular fa-paper-plane menu-icon mr-3{% if request.resolver_match.url_name == 'sendticket' %} bg-primary text-white{% endif %}" href="{% url "sendticket" %}"></i>
+              <span class="menu-title">Transfert de ticket</span>
+            </a>
+          </li>
+
           <li class="nav-item">
             <a id="transaction" style="font-weight:600" class="nav-link {% if request.resolver_match.url_name == 'transaction_etudiant' %} bg-primary text-white{% endif %}" href="{% url "transaction_etudiant" %}">
               <i class="icon-bar-graph menu-icon {% if request.resolver_match.url_name == 'transaction_etudiant' %} bg-primary text-white{% endif %}" href="{% url "transaction_etudiant" %}"></i>
               <span class="menu-title">Mes transactions</span>
             </a>
           </li>
+
         </ul>
       </nav>
 
@@ -85,6 +93,7 @@
   <!-- container-scroller -->
 
   <!-- plugins:js -->
+  <script src="{% static "js/jquery.min.js" %}"></script>
   <script src="{% static "vendors/js/vendor.bundle.base.js" %}"></script>
   <!-- endinject -->
   <!-- Plugin js for this page -->

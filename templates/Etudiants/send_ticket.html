@@ -1,0 +1,147 @@
+{% extends "base.html" %}
+{% load static %}
+
+
+
+
+
+{% block navbar %}
+<nav class="navbar col-lg-12 col-12 p-0 fixed-top d-flex flex-row">
+    <div class="text-center navbar-brand-wrapper d-flex align-items-center justify-content-center">
+      <a class="navbar-brand brand-logo mr-5" href="#"><img src="{% static "images/uadb.png" %}" class="mr-2" alt="logo"/></a>
+      <a class="navbar-brand brand-logo-mini" href="#"><img src="{% static "images/uadb.png" %}" alt="logo"/></a>
+    </div>
+    <div class="navbar-menu-wrapper d-flex align-items-center justify-content-end">
+      <button class="navbar-toggler navbar-toggler align-self-center" type="button" data-toggle="minimize">
+        <span class="icon-menu"></span>
+      </button>
+      <ul class="navbar-nav mr-lg-2">
+        <li class="nav-item nav-search d-none d-lg-block">
+          <div class="input-group">
+            <div class="input-group-prepend hover-cursor" id="navbar-search-icon">
+              <span class="input-group-text" id="search">
+                <!--i class="icon-search"></i-->
+              </span>
+            </div>
+            <!--input type="text" class="form-control" id="navbar-search-input" placeholder="Recherche" aria-label="search" aria-describedby="search"-->
+          </div>
+        </li>
+      </ul>
+      <ul class="navbar-nav navbar-nav-right">
+        <li class="nav-item nav-profile dropdown">
+          <a class="nav-link dropdown-toggle" href="#" data-toggle="dropdown" id="profileDropdown">
+            <img src="{% static "images/Avatar.jpg" %}" alt="profile"/>
+          </a>
+          <div class="dropdown-menu dropdown-menu-right navbar-dropdown" aria-labelledby="profileDropdown">
+            <a href="{% url 'detail_etudiant' request.user.id %}" class="dropdown-item">
+              <i class="fa-solid fa-user text-primary"></i>
+              <span class="ml-2">Profil</span>
+            </a>
+            <a href="{% url 'deconnected_etudiant' %}" class="dropdown-item z-50"  >
+              <i class="ti-power-off text-primary"></i>
+              Déconnecter
+            </a>
+          </div>
+        </li>
+      </ul>
+      <button class="navbar-toggler navbar-toggler-right d-lg-none align-self-center" type="button" data-toggle="offcanvas">
+        <span class="icon-menu"></span>
+      </button>
+    </div>
+  </nav>
+  
+  {% endblock %}
+
+            
+
+
+{% block contenu %}
+
+<div class="row ">
+    <div class="col-12 stretch-card" style="margin-bottom: 380px ">
+        <div class="card" style="border-top: 4px solid #248AFD; padding: 20px;">
+            <div class="row">
+                <div class="col-12">
+                    <div class="card-body">
+                        <div class="container">
+                            <div class="row justify-content-center">
+                                <div class="col-md-8">
+                                    {% if messages %}
+                                    {% for message in messages %}
+                                        {% if message.tags == 'error' %}
+                                            <div class="alert alert-danger border-0 rounded  message" role="alert">
+                                                {{ message }}
+                                            </div>
+                                        {% elif message.tags == 'success' %}
+                                            <div class="alert alert-success border-0 rounded border-success  message" role="alert">
+                                                {{ message }}
+                                            </div>
+                                        {% endif %}
+                                    {% endfor %}
+                                    {% endif %}   
+                                    <form method="POST">
+                                        {% csrf_token %}
+                                        <div class="form-group" style="margin-top:30px;">
+                                            <input type="text" class="form-control form-control-sm border-3 rounded shadow-sm" name="cp" value="{{ request.POST.cp }}"  placeholder="Code permenant du destinataire" Required>
+                                            {% if form.cp.errors %}
+                                            <p class="font-weight-light text-danger">{{ form.cp.errors.0}}</p>
+                                            {% endif %}
+                                        </div>
+                                        
+                                        <div class="form-group">
+                                            <input type="tel" inputmode="numeric" pattern="[0-9]*"class="form-control form-control-sm border-3 rounded shadow-sm" name="nbre_tickets" onkeypress="return isPositiveInteger(event)"  placeholder="Nombre de tickets" Required>
+                                            {% if nbre_tickets.errors %}
+                                            <p class="font-weight-light text-danger">{{ form.nbre_tickets.errors.0}}</p>
+                                            {% endif %}
+                                        </div>
+                                        <div class="form-group">
+                                            <select class="form-control form-control-sm border-3 rounded shadow-sm" name="Typeofticket" id="typeticket" style="background-color: white;" required>
+                                                <option selected>Type de Tickets...</option>
+                                                <option value="dej">Ticket Petit-Déjeuner</option>
+                                                <option value="repas">Ticket Déjeuner</option>
+                                            </select>
+                                            {% if form.Typeofticket.errors %}
+                                            <p class="font-weight-light text-danger">{{ form.Typeofticket.errors.0}}</p>
+                                            {% endif %}
+                                        </div>
+                                        <button id="acheter" class="btn btn-primary" style="font-weight:600;">Envoyer</button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<script>
+    // Sélectionnez tous les éléments de classe 'message'
+    const messages = document.querySelectorAll('.message');
+
+    // Masquer chaque message après 5 secondes
+    messages.forEach(message => {
+        setTimeout(() => {
+            message.style.display = 'none';
+        }, 5000);  // 5000 millisecondes = 5 secondes
+    });
+
+    function isPositiveInteger(event) {
+        // Récupérer le code de la touche enfoncée
+        var keyCode = event.which ? event.which : event.keyCode;
+    
+        // Autoriser uniquement les touches numériques (0-9) et la touche Supprimer
+        if ((keyCode >= 48 && keyCode <= 57) || keyCode === 8) {
+            return true;
+        } else {
+            // Empêcher la saisie de tout autre caractère
+            event.preventDefault();
+            return false;
+        }
+    }
+
+</script>
+
+{% endblock %}

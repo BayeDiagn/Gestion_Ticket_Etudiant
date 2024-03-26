@@ -24,14 +24,14 @@
       <div class="container-fluid page-body-wrapper full-page-wrapper">
         <div class="content-wrapper d-flex align-items-center auth px-0">
           <div class="row w-100 mx-0">
-            <div class="col-lg-6 mx-auto" >
-              <div class="auth-form-light text-left py-5 px-4 px-sm-5">
-                <div class="brand-logo" style="margin-left:150px; margin-top:-30px">
-                  <img src="{% static "images/uadb.png" %}" alt="logo">
+            <div class="col-lg-6 mx-auto " >
+              <div class="auth-form-light text-center py-5 px-4 px-sm-5">
+                <div style="margin-top: -20px;">
+                  <img src="{% static "images/uadb.png" %}" alt="logo" class="mx-auto d-block" style="max-width: 150px;">
                 </div>
-                <h4 style="font-weight: 600; margin-left:100px; padding-bottom:12px; margin-top:-10px ">Connectez-vous à votre compte</h4>
+                <h4 style="font-weight: 600; padding-bottom:12px; margin-top:8px;">Connectez-vous à votre compte</h4>
                 {% if form.errors %}
-                    <h6 class="font-weight-light text-light text-center rounded shadow-sm" style="background-color:#F15748; padding:6px">Nom d'utilisateur ou mot de passe incorrect!</h6>
+                <div class="alert alert-danger border-0 rounded" role="alert">Nom d'utilisateur ou mot de passe incorrect!</div>
                 {% endif %}
                 <form class="pt-3" method="POST">
                     {% csrf_token %} 
@@ -53,9 +53,9 @@
                     </div>
                     <a href="{% url 'password_reset' %}" class="auth-link text-black">Mot de passe oublié?</a>
                      </div>
-                  <div class="text-center mt-4 font-weight-light">
-                    Vous n'êtes pas encore membre? <a href="#" class="text-primary">S'inscrire</a>
-                  </div>
+                  <!--div class="text-center mt-4 font-weight-light">
+                    Vous n'êtes pas encore membre? <a href="{% url 'signup_etudiant' %}" class="text-primary">S'inscrire</a>
+                  </div-->
                 </form>
               </div>
             </div>

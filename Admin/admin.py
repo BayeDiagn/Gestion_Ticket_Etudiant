@@ -10,6 +10,8 @@ from Personnels.models import Personnel
 
 @admin.register(User)
 class UserAdmin(admin.ModelAdmin):
-    list_display=('first_name','last_name','is_superuser','is_personnel','is_etudiant')
+    list_display=('identifiant','first_name','last_name','is_superuser','is_personnel','is_etudiant')
     list_filter=('is_superuser',)
     search_fields=('identifiant',)
+    list_per_page = 5
+    ordering = ('first_name',)

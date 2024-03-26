@@ -14,6 +14,7 @@ from Admin.models import User
 
 
 
+
     
     
     
@@ -31,10 +32,10 @@ class Etudiant (User):
     
     
     #Décrementer ticket repas
-    def decrementer_ticket_repas(self):
+    def decrementer_ticket_repas(self,nbre_ticket):
         from Tickets.models import Ticket_Repas
         ticket_repas = Ticket_Repas.objects.get(etudiant=self) 
-        ticket_repas.nbre_tickets_repas -= 1
+        ticket_repas.nbre_tickets_repas -= nbre_ticket
         ticket_repas.save()
             #print(f"Ticket repas décrémenté pour {self.first_name} {self.last_name}, {ticket_repas.nbre_tickets_repas} tickets restants.")
         # else:
@@ -43,11 +44,11 @@ class Etudiant (User):
      
             
     #décrementer ticket dej         
-    def decrementer_ticket_dej(self):
+    def decrementer_ticket_dej(self,nbre_ticket):
         from Tickets.models import Ticket_Dej
         ticket_dej = Ticket_Dej.objects.get(etudiant=self) 
         # if ticket_dej.nbre_tickets_dej > 0:
-        ticket_dej.nbre_tickets_dej -= 1
+        ticket_dej.nbre_tickets_dej -= nbre_ticket
         ticket_dej.save()
         #     print(f"Ticket dej décrémenté pour {self.first_name} {self.last_name}, {ticket_dej.nbre_tickets_dej} tickets restants.")
         # else:
@@ -62,7 +63,6 @@ class Etudiant (User):
         if nbre_tickets > 0:
             ticket_repas.nbre_tickets_repas += nbre_tickets
             ticket_repas.save()
-            print(f"Ticket repas incrémenté pour {self.first_name} {self.last_name}, {ticket_repas.nbre_tickets_repas} tickets restants.")
     
     
     
@@ -73,7 +73,6 @@ class Etudiant (User):
         if nbre_tickets > 0:
             ticket_dej.nbre_tickets_dej += nbre_tickets
             ticket_dej.save()
-            print(f"Ticket dej incrémenté pour {self.first_name} {self.last_name}, {ticket_dej.nbre_tickets_dej} tickets restants.")
             
     
     
@@ -84,6 +83,7 @@ class Etudiant (User):
     
     #redefinition de le methode save()
     def save(self,*args, **kwargs):
+        from Tickets.models import Ticket_Dej, Ticket_Repas
         if not self.pk:
             qr = qrcode.QRCode(
                 version=3,
@@ -100,4 +100,14 @@ class Etudiant (User):
             fname = f"Qrcode-{self.identifiant}.png"
             self.code_qr.save(fname,File(buffer),save=False)
             
-        super().save(*args, **kwargs)
+            super().save(*args, **kwargs)
+        
+        if not self.tickets_repas.exists():
+            # S'il n'y en a pas, initialise nbre_tickets_repas à 0
+            Ticket_Repas.objects.create(etudiant=self, nbre_tickets_repas=0.0)
+            
+        if not self.tickets_dej.exists():
+            # S'il n'y en a pas, initialise nbre_tickets_dej à 0
+            Ticket_Dej.objects.create(etudiant=self, nbre_tickets_dej=0.0)
+            
+        

@@ -29,25 +29,37 @@
     </ul>
     <ul class="navbar-nav navbar-nav-right">
       <li class="nav-item dropdown">
-        <a class="nav-link count-indicator dropdown-toggle" id="notificationDropdown" href="#" data-toggle="dropdown">
+        <a class="nav-link count-indicator dropdown-toggle position-relative" id="notificationDropdown" href="#" data-toggle="dropdown">
           <i class="icon-bell mx-0"></i>
-          <span class="count"></span>
+          {% if nbre > 0  %}
+          <span id="notificationBadge" class="badge badge-primary badge-pill" style="position: absolute;top: -1px;right: -3px;font-size: 0.6rem;padding: 2px 5px;">{{ nbre }}</span>
+          {% endif %}
         </a>
-        <div class="dropdown-menu dropdown-menu-right navbar-dropdown preview-list" aria-labelledby="notificationDropdown">
+        <div class="dropdown-menu dropdown-menu-right navbar-dropdown preview-list" aria-labelledby="notificationDropdown" id="notificationBox">
           <p class="mb-0 font-weight-normal float-left dropdown-header">Notifications</p>
-          <!--a class="dropdown-item preview-item">
+          {% if nbre > 0 %}
+          {% for notification in notifications %}
+          <a class="dropdown-item preview-item">
             <div class="preview-thumbnail">
-              <div class="preview-icon bg-success">
+              <div class="preview-icon bg-info">
                 <i class="ti-info-alt mx-0"></i>
               </div>
             </div>
             <div class="preview-item-content">
-              <h6 class="preview-subject font-weight-normal">Application Error</h6>
+              <h6 class="preview-subject font-weight-normal" id="notificationDropdown">{{ notification.verb }}</h6>
               <p class="font-weight-light small-text mb-0 text-muted">
-                Just now
+                {{ notification.description }}
               </p>
             </div>
-          </a-->
+          </a>
+          {% endfor %} 
+          <hr style="margin-top: 8px; margin-bottom: 0px;"> 
+          <div class="preview-item-content">
+            <a href="{% url 'clear_notification' %}" class="dropdown-item preview-item" style="padding-left:100px">
+              <strong>Supprimer les notifications</strong>
+            </a>
+          </div>
+          {% endif %}
         </div>
       </li>
       <li class="nav-item nav-profile dropdown">
@@ -141,7 +153,7 @@
                               <label for="PetitsDej" class="text-primary">Nombre Tickets Petits-déjeuners</label>
                               <div class="form-group row">
                                 <div class="col-sm-9">
-                                  <input type="text" class="form-control border-3 rounded shadow-sm" id="PetitsDej" onkeyup="calculateTotal()" onkeypress="return isPositiveInteger(event)" placeholder="Entrer le nombre de tickets petits-déj">
+                                  <input type="tel" inputmode="numeric" pattern="[0-9]*"  class="form-control border-3 rounded shadow-sm" id="PetitsDej" onkeyup="calculateTotal()" onkeypress="return isPositiveInteger(event)" placeholder="Entrer le nombre de tickets petits-déj">
                                 </div>
                               </div>
                             </div>
@@ -163,7 +175,7 @@
                                 <label for="Dej" class="text-primary">Nombre Tickets Déjeuners</label>
                                 <div class="form-group row">
                                   <div class="col-sm-9">
-                                    <input type="text" class="form-control border-3 rounded shadow-sm" id="Dej" onkeyup="calculateTotal()" onkeypress="return isPositiveInteger(event)" placeholder="Entrer le nombre de tickets déjeuners">
+                                    <input type="tel" inputmode="numeric" pattern="[0-9]*" class="form-control border-3 rounded shadow-sm" id="Dej" onkeyup="calculateTotal()" onkeypress="return isPositiveInteger(event)" placeholder="Entrer le nombre de tickets déjeuners">
                                   </div>
                                 </div>
                               </div>
@@ -187,7 +199,7 @@
                 <div class="card-body">
                   <h4 class="card-title">Montant Total</h4>
                   <p class="card-description text-info" id="total" style="font-weight:900"></p>
-                  <a href="#" id="acheter" class="btn btn-info" style="font-weight:600; display: none">Payer</a>
+                  <button id="acheter" class="btn btn-info" style="font-weight:600; display: none">Payer</button>
                 </div>
             </div>
           </div>
@@ -195,6 +207,7 @@
     </div>
 
 </div>
+
 
 
 
@@ -257,7 +270,8 @@
     
         var dejValue = dejInput ? parseInt(dejInput) : 0;
         var petitsDejValue = petitsDejInput ? parseInt(petitsDejInput) : 0;
-    
+
+        
         var totalValue = 100*dejValue + 50*petitsDejValue;
         var totalElement = document.getElementById("total");
         totalElement.textContent = totalValue + " francs cfa";
@@ -267,15 +281,19 @@
             acheter.style.display = "inline-block"; // Afficher le lien
         } else {
             acheter.style.display = "none"; // Masquer le lien
-        }
-        
+        }   
     }
+
+    
 
     {% comment %} document.addEventListener('DOMContentLoaded', function() {
       var petitsDejInput = document.getElementById("PetitsDej");
       petitsDejInput.focus();
   }); {% endcomment %}
   
+
+
+
     
 </script>
 
