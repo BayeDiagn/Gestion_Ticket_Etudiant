@@ -14,7 +14,7 @@ router.register('etudiant', views.EtudiantViewset, basename='etudiant')
 
 urlpatterns = [
     path('',views.EtudiantLoginView.as_view(), name='login_etudiant'),
-    path('inscription/',views.EtudiantCreateView.as_view(), name='signup_etudiant'),
+    # path('inscription/',views.EtudiantCreateView.as_view(), name='signup_etudiant'),
     path('accueil/',views.etudiant_home, name='home_etudiant'),
     path('send_ticket/',views.sendTicket, name='sendticket'),
     path('deconnexion/',views.etudiant_deconnected, name='deconnected_etudiant'),
@@ -27,7 +27,10 @@ urlpatterns = [
     path("password_confirm/<uidb64>/<token>/",PasswordResetConfirmView.as_view(template_name='Etudiants/passwordChanged.html'),name="password_reset_confirm"),
     path('password_complete/',views.EtudiantPasswordResetCompleteView.as_view(),name='password_reset_complete'),
     
+    path('payment-done/',views.payment_done, name='payment_done'),
+    path('payment-canceled/',views.payment_canceled, name='payment_canceled'),
     path('clear_notification/',views.clear_notification, name='clear_notification'),
+    #path('^inbox/notifications/', include(notifications.urls, namespace='notifications')),
     
     #path("password_complete/",PasswordResetCompleteView.as_view(template_name='Etudiants/etudiant_passwordComplet.html'),name="password_changed"),
     #path('api/etudiant/',views.EtudiantAPIView.as_view()),

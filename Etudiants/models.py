@@ -110,4 +110,13 @@ class Etudiant (User):
             # S'il n'y en a pas, initialise nbre_tickets_dej à 0
             Ticket_Dej.objects.create(etudiant=self, nbre_tickets_dej=0.0)
             
-        
+
+
+class Transaction (models.Model):
+    description = models.TextField(max_length=250, null = True, blank = True)
+    etudiant = models.ForeignKey(Etudiant,related_name="description",on_delete=models.CASCADE)
+    date=models.DateTimeField(auto_now_add=True)
+    #date=models.DateField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.etudiant.first_name}_{self.etudiant.last_name} (Transactions)"

@@ -1,0 +1,433 @@
+{% extends 'personnel_base.html' %}
+{% load static %}
+
+
+
+{% block navbar %}
+
+<nav class="navbar col-lg-12 col-12 p-0 fixed-top d-flex flex-row">
+    <div class="text-center navbar-brand-wrapper d-flex align-items-center justify-content-center">
+        <a class="navbar-brand brand-logo mr-5" href="#"><img src="{% static "images/uadb.png" %}" class="mr-2"
+                alt="logo" /></a>
+        <a class="navbar-brand brand-logo-mini" href="#"><img src="{% static "images/uadb.png" %}"
+                alt="logo" /></a>
+    </div>
+    <div class="navbar-menu-wrapper d-flex align-items-center justify-content-end">
+        <button class="navbar-toggler navbar-toggler align-self-center" type="button" data-toggle="minimize">
+            <span class="icon-menu"></span>
+        </button>
+        <ul class="navbar-nav mr-lg-2">
+            <li class="nav-item nav-search d-none d-lg-block">
+                <div class="input-group">
+                    <div class="input-group-prepend hover-cursor" id="navbar-search-icon">
+                        <span class="input-group-text" id="search">
+                            <i class="icon-search"></i>
+                        </span>
+                    </div>
+                    <input type="text" class="form-control" id="navbar-search-input" placeholder="Recherche" aria-label="search" aria-describedby="search">
+                </div>
+            </li>
+        </ul>
+        <ul class="navbar-nav navbar-nav-right">
+            <li class="nav-item dropdown">
+                <a class="nav-link count-indicator dropdown-toggle position-relative" id="notificationDropdown"
+                    href="#" data-toggle="dropdown">
+                    <i class="icon-bell mx-0"></i>
+                    {% if nbre > 0  %}
+                    <span id="notificationBadge" class="badge badge-primary badge-pill"
+                        style="position: absolute;top: -1px;right: -3px;font-size: 0.6rem;padding: 2px 5px;">{{ nbre }}</span>
+                    {% endif %}
+                </a>
+                <div class="dropdown-menu dropdown-menu-right navbar-dropdown preview-list"
+                    aria-labelledby="notificationDropdown" id="notificationBox">
+                    <p class="mb-0 font-weight-normal float-left dropdown-header">Notifications</p>
+                    {% if nbre > 0 %}
+                    {% for notification in notifications %}
+                    <a class="dropdown-item preview-item">
+                        <div class="preview-thumbnail">
+                            <div class="preview-icon bg-info">
+                                <i class="ti-info-alt mx-0"></i>
+                            </div>
+                        </div>
+                        <div class="preview-item-content">
+                            <h6 class="preview-subject font-weight-normal" id="notificationDropdown">
+                                {% if notification.verb %} {{ notification.verb }} {% else %} {% endif %}</h6>
+                            <p class="font-weight-normal small-text mb-0 ">
+                                {% if notification.description %} {{ notification.description }} {% else %} {% endif %}
+                            </p>
+                        </div>
+                    </a>
+                    {% endfor %}
+                    <hr style="margin-top: 8px; margin-bottom: 0px;">
+                    <div class="preview-item-content">
+                        <a href="{% url 'clear_notification' %}" class="dropdown-item preview-item"
+                            style="padding-left:100px">
+                            <strong>Supprimer les notifications</strong>
+                        </a>
+                    </div>
+                    {% endif %}
+                </div>
+            </li>
+            <li class="nav-item nav-profile dropdown">
+                <a class="nav-link dropdown-toggle" href="#" data-toggle="dropdown" id="profileDropdown">
+                    <img src="{% static "images/Avatar.jpg" %}" alt="profile" />
+                </a>
+                <div class="dropdown-menu dropdown-menu-right navbar-dropdown" aria-labelledby="profileDropdown">
+                    <a href="{% url 'detail_etudiant' request.user.id %}" class="dropdown-item">
+                        <i class="fa-solid fa-user text-primary"></i>
+                        <span class="ml-2">Profil</span>
+                    </a>
+                    <a href="{% url 'deconnected_etudiant' %}" class="dropdown-item z-50">
+                        <i class="ti-power-off text-primary"></i>
+                        Déconnecter
+                    </a>
+                </div>
+            </li>
+        </ul>
+        <button class="navbar-toggler navbar-toggler-right d-lg-none align-self-center" type="button"
+            data-toggle="offcanvas">
+            <span class="icon-menu"></span>
+        </button>
+    </div>
+</nav>
+
+{% endblock %}
+
+
+
+{% block contenu %}
+
+<div class="row">
+    <div class="col-md-12 grid-margin">
+        <div class="row">
+            <div class="col-12 col-xl-8 mb-4 mb-xl-0">
+                <h3 class="font-weight-bold">Bienvenu(e) {{ request.user.first_name }}
+                    {{ request.user.last_name }}!!
+                </h3>
+                <h6 class="font-weight-normal mb-0 text-primary">Procurez-vous vos tickets pour la restauration
+                    universitaire.</h6>
+            </div>
+            <div class="col-12 col-xl-4">
+                <div class="justify-content-end d-flex">
+                    <!--div class="dropdown flex-md-grow-1 flex-xl-grow-0">
+                        <button class="btn btn-sm btn-light bg-white dropdown-toggle" type="button"
+                            id="dropdownMenuDate2" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
+                            <i class="mdi mdi-calendar"></i>Recentes Transactions
+                        </button>
+                        <div class="dropdown-menu dropdown-menu-right" aria-labelledby="dropdownMenuDate2">
+                            <a class="dropdown-item" href="#"></a>
+                        </div>
+                    </div-->
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<div class="row">
+    <div class="col-md-4 grid-margin transparent">
+        <div class="card card-tale">
+            <div class="card-body">
+                <p class="mb-4 fs-28">Nombre Tickets Petits-déjeuners Consommé</p>
+                <p class="fs-30 mb-2"><strong>{{nbreTPD}}</strong> </p>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4 grid-margin transparent">
+        <div class="card card-light-blue">
+            <div class="card-body">
+                <p class="mb-4 fs-28">Nombre Tickets Déjeuners Consommé</p>
+                <p class="fs-30 mb-2"><strong>{{nbreTRP}}</strong> </p>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4 grid-margin transparent">
+        <div class="card card-dark-blue">
+            <div class="card-body">
+                <p class="mb-4 fs-28">Nombre Tickets Dinners Consommé</p>
+                <p class="fs-30 mb-2"><strong>{{nbreTD}}</strong> </p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-12 grid-margin stretch-card">
+        <div class="card position-relative">
+            <div class="card-body">
+                <div id="detailedReports" class="carousel slide detailed-report-carousel position-static pt-2"
+                    data-ride="carousel">
+                    <div class="carousel-inner">
+
+                        <div class="carousel-item active">
+                            <div class="row">
+                                <div class="col-md-12 col-xl-3 d-flex flex-column justify-content-start">
+                                    <div class="ml-xl-4 mt-3">
+                                        <p class="card-title">Montant Journalier</p>
+                                        <h2 class="text-primary">{{montant_total_jour}} <span class="font-weight-light">cfa</span></h2>
+                                        <!--h3 class="font-weight-500 mb-xl-4 text-primary">Campus 1</h3-->
+                                        <p class="mb-2 mb-xl-0">Le <strong class="text-info">camembert</strong> ci-dessous illustre la <strong class="text-info">répartition quotidienne</strong> des différents tickets universitaires consommés, tandis que le <strong class="text-info">diagramme à barres</strong> représente cette répartition pour la <strong class="text-info">semaine actuelle</strong>.</p>
+                                    </div>
+                                </div>
+                                <div class="col-md-12 col-xl-9" >
+                                    <div class="row">
+
+                                        <div class="col-md-6 mt-3">
+                                            <div class="card">
+                                                <div class="card-body">
+                                                    <canvas id="doughnutChartDay" height="320"></canvas>
+                                                </div>
+                                                <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+                                                <script>
+                                                    const datadoughnutDay = {
+                                                        labels: ['Tickets_Petit_Dej', 'Tickets_Dejeuner', 'Tickets_Diner'],
+                                                        datasets: [{
+                                                            label: 'Consommés dans la journée',
+                                                            data: [{{ nbreTPD }}, {{ nbreTRP }}, {{ nbreTD }}],
+                                                            hoverOffset: 4,
+                                                            backgroundColor: [
+                                                                '#4B49AC', // primary
+                                                                '#FFC100', // warning
+                                                                '#248AFD', // info
+                                                            ]
+                                                        }]
+                                                    };
+                                
+                                                    const configdoughnutDay = {
+                                                        type: 'doughnut',
+                                                        data: datadoughnutDay,
+                                                        options: {
+                                                            cutoutPercentage: 0,
+                                                            scales: {
+                                                                x: {
+                                                                    display: false
+                                                                },
+                                                                y: {
+                                                                    display: false
+                                                                }
+                                                            }
+                                                        }
+                                                    };
+                                                    const ctxdoughnutDay = document.getElementById('doughnutChartDay').getContext('2d');
+                                                    new Chart(ctxdoughnutDay, configdoughnutDay);
+                                                </script>
+                                                <p class="text-center"><strong>Montant</strong> : <span class="text-info"> <strong>{{montant_total_jour}}</strong> cfa</span></p>
+                                            </div>
+                                        </div>
+
+                                        <div class="col-md-6">
+                                            <div class="card">
+                                                <div class="card-body">
+                                                    <canvas id="BarChartWeek" height="320"></canvas>
+                                                </div>
+                                            </div>
+                                            <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+                                            <script>
+                                                const dataBarWeek = {
+                                                    labels: ['Tickets_Petit_Dej', 'Tickets_Dejeuner', 'Tickets_Diner'],
+                                                    datasets: [{
+                                                        label: 'consommés dans la semaine',
+                                                        data: [{{tickets_pdej_of_week}},{{tickets_dej_of_week}},{{tickets_diner_of_week}}],
+                                                        fill: false,
+                                                        backgroundColor: {{colors|safe}},
+                                                        borderColor: {{colors|safe}},
+                                                        borderWidth: 1
+                                                        
+                                                    }]
+                                                };
+                                
+                                                const configBarWeek = {
+                                                    type: 'bar',
+                                                    data: dataBarWeek,
+                                                    options: {
+                                                      cutoutPercentage: 0,
+                                                      scales: {
+                                                        y: {
+                                                          beginAtZero: true
+                                                        }
+                                                      }
+                                                    }
+                                                  };
+                                                const ctxBarWeek = document.getElementById('BarChartWeek').getContext('2d');
+                                                new Chart(ctxBarWeek, configBarWeek);
+                                            </script>
+                                            <p class="text-center"><strong>Montant</strong> : <span class="text-info"> <strong>{{montant_total_week}}</strong> cfa</span></p>
+                                        </div>
+
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <!--Fin First carousel-->
+                        <div class="carousel-item">
+                            <div class="row">
+                                <div class="col-md-12 col-xl-3 d-flex flex-column justify-content-start">
+                                    <div class="ml-xl-4 mt-3">
+                                        <p class="card-title">Montant mensuel</p>
+                                        <h2 class="text-primary">{{montant_total_mois}} <span class="font-weight-light">cfa</span></h2>
+                                        <p class="mb-2 mb-xl-0">Le <strong class="text-info">tracé linéaire </strong> ci-dessous représente la <strong class="text-info">répartition mensuelle</strong> des différents tickets universitaires consommés, alors que le <strong class="text-info">diagramme à barres</strong> illustre cette répartition pour <strong class="text-info">l'année en cours</strong>.</p>
+                                    </div>
+                                </div>
+                                <div class="col-md-12 col-xl-9">
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <div class="card">
+                                                <div class="card-body">
+                                                    <canvas id="LineChartmois" height="320"></canvas>
+                                                </div>
+                                            </div>
+                                            <script>
+                                                const dataLinemois = {
+                                                    labels: ['Tickets_Petit_Dej', 'Tickets_Dejeuner', 'Tickets_Diner'],
+                                                  datasets: [{
+                                                    label: 'consommés dans cet mois',
+                                                    data: [{{ticket_pdej_month}},{{ticket_dej_month}},{{ticket_diner_month}}],
+                                                    fill: false,
+                                                    //borderColor: {{colors|safe}},
+                                                    tension: 0.4 
+                                      
+                                                  }]
+                                                };
+                                              
+                                                const configLinemois = {
+                                                  type: 'line',
+                                                  data: dataLinemois,
+                                                  options: {
+                                                    responsive: true,  
+                                                  }
+                                                  
+                                                };
+                                                const ctxLinemois = document.getElementById('LineChartmois').getContext('2d');
+                                                new Chart(ctxLinemois, configLinemois);
+                                              </script>
+                                              <p class="text-center"><strong>Montant</strong> : <span class="text-info"> <strong>{{montant_total_mois}}</strong> cfa</span></p>
+                                        </div>
+
+                                        <div class="col-md-6">
+                                            <div class="card">
+                                                <div class="card-body">
+                                                    <canvas id="barChartyear" height="320"></canvas>
+                                                </div>
+                                            </div>
+                                            <script>
+                                                const dataBaryear = {
+                                                    labels: ['Tickets_Petit_Dej', 'Tickets_Dejeuner', 'Tickets_Diner'],
+                                                  datasets: [{
+                                                    label: "Consommés dans l'année",
+                                                    data: [{{tickets_pdej_of_year}},{{tickets_dej_of_year}},{{tickets_diner_of_year}}],
+                                                    fill: false,
+                                                    backgroundColor: [
+                                                        '#248AFD', // info
+                                                        '#FFC100', // warning
+                                                        '#4B49AC', // primary
+                                                                
+                                                    ],
+                                                    //borderColor: {{colors|safe}},
+                                                    borderWidth: 1
+                                      
+                                                  }]
+                                                };
+                                              
+                                                const configBaryear = {
+                                                  type: 'bar',
+                                                  data: dataBaryear,
+                                                  options: {
+                                                    responsive: true,  
+                                                   // barPercentage: 0.4 ,
+                                                  }
+                                                  
+                                                };
+                                                const ctxBaryear = document.getElementById('barChartyear').getContext('2d');
+                                                new Chart(ctxBaryear, configBaryear);
+                                              </script>
+                                              <p class="text-center"><strong>Montant</strong> : <span class="text-info"> <strong>{{montant_total_year}} </strong> cfa</span></p>
+                                        </div>  
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <a class="carousel-control-prev" href="#detailedReports" role="button" data-slide="prev">
+                        <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                        <span class="sr-only">Previous</span>
+                    </a>
+                    <a class="carousel-control-next" href="#detailedReports" role="button" data-slide="next">
+                        <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                        <span class="sr-only">Next</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<div class="col-lg-12 grid-margin stretch-card" >
+    <div class="card">
+      <div class="card-body">
+        <h4 class="card-title">Liste des Etudiants</h4>
+
+        <div class="table-responsive" id="results">
+            <table class=" table table-hover display expandable-table" > 
+              <thead>
+                <tr >
+                  <th> Code permenant </th>
+                  <th> Prénom </th>
+                  <th> Nom </th>
+                  <th> Détails </th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for etudiant in liste %}
+                <tr>
+                   <td>
+                    <a href="{% url 'etudiantdetail' etudiant.id %}" style="text-decoration: none; color:#305863"> {{etudiant.identifiant}}</a>
+                  </td>
+                  <td>
+                    <a href="{% url 'etudiantdetail' etudiant.id %}"style="text-decoration: none; color:#305863">  {{etudiant.first_name}}</a>
+                  </td>
+                  <td>
+                    <a href="{% url 'etudiantdetail' etudiant.id %}"style="text-decoration: none; color:#305863"> {{etudiant.last_name}}</a>
+                  </td>
+                  <td> <a href="{% url 'etudiantdetail' etudiant.id %}"style="text-decoration: none; color: #0693BB;"> <i class="ti-eye"></i> </a></td>
+                </tr>
+              </tbody>
+              {% endfor %}
+            </table>
+          </div>
+      </div>
+    </div>
+</div>
+
+<div class="col-lg-12 grid-margin stretch-card justify-content-end ">
+    <nav aria-label="Page navigation example">
+      <ul class="pagination ">
+        {% if liste.has_previous %}
+        <li class="page-item">
+          <a class="page-link" href="?page={{ liste.previous_page_number }}" aria-label="Previous">
+              <span aria-hidden="true">&laquo;</span>
+          </a>
+        </li>
+        {% endif %}
+  
+      {% for page in liste.paginator.page_range %}
+      <li class="page-item {% if page == liste.number %}active{% endif %}">
+          <a class="page-link" href="?page={{ page }}">{{ page }}</a>
+      </li>
+      {% endfor %}
+  
+      {% if liste.has_next %}
+      <li class="page-item">
+          <a class="page-link" href="?page={{ liste.next_page_number }}" aria-label="Next">
+              <span aria-hidden="true">&raquo;</span>
+          </a>
+      </li>
+      {% endif %}
+      </ul>
+    </nav>
+</div>
+
+{% endblock %}

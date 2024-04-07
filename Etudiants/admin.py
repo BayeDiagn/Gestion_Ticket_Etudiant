@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from Etudiants.models import Etudiant
+from Etudiants.models import Etudiant, Transaction
 from Tickets.models import Ticket_Dej, Ticket_Repas
 
 
@@ -33,3 +33,11 @@ class Etudiants(admin.ModelAdmin):
     inlines=(Ticket_Repas_Add, Ticket_Dej_Add)
 
 
+#admin.site.register(Transaction)
+@admin.register(Transaction)
+class TransactionAdmin(admin.ModelAdmin):
+    list_display=('etudiant_identifiant','etudiant','description','date')
+    search_fields=('etudiant__identifiant', )
+    
+    def etudiant_identifiant(self, obj):
+        return obj.etudiant.identifiant

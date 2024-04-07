@@ -9,7 +9,6 @@ from Admin.models import User
 
 
 class Personnel(User): 
-    photo = models.ImageField(upload_to='personnel/', null=True, blank=True)
     date=models.DateField(auto_now_add=True)
     
     
@@ -21,3 +20,16 @@ class Personnel(User):
             return f"{self.first_name} {self.last_name}"
           elif self.last_name is None:
             return self.first_name
+          
+          
+
+class TicketConsommer(models.Model):
+    TYPE_CHOICES = (
+        ('pdej', 'Petit-déjeuner'),
+        ('dej', 'Déjeuner'),
+        ('dinner', 'Dîner'),
+    )
+    type_ticket = models.CharField(max_length=10, choices=TYPE_CHOICES)
+    quantity = models.PositiveIntegerField(default=0)
+    personnel = models.ForeignKey(Personnel, on_delete=models.CASCADE, related_name='tickets')
+    date = models.DateField(auto_now_add=True)

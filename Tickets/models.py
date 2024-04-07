@@ -40,3 +40,7 @@ class Ticket_Dej(models.Model):
     
     def __str__(self) :
         return f"{self.etudiant.first_name}_{self.etudiant.last_name} (Tickets Dejeuner)"
+    
+    
+    
+

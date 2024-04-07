@@ -13,32 +13,6 @@
       </button>
      
       <ul class="navbar-nav navbar-nav-right">
-        <li class="nav-item dropdown">
-          <a class="nav-link count-indicator dropdown-toggle" id="notificationDropdown" href="#" data-toggle="dropdown">
-            <i class="icon-bell mx-0"></i>
-            {% if nbre > 0  %}
-            <span id="notificationBadge" class="badge badge-primary badge-pill" style="position: absolute;top: -2px;right: -3px;font-size: 0.6rem;padding: 2px 5px;">{{ nbre }}</span>
-            {% endif %}
-          </a>
-          <div class="dropdown-menu dropdown-menu-right navbar-dropdown preview-list" aria-labelledby="notificationDropdown">
-            <p class="mb-0 font-weight-normal float-left dropdown-header">Notifications</p>
-            {% for notification in notifications %}
-            <a class="dropdown-item preview-item">
-              <div class="preview-thumbnail">
-                <div class="preview-icon bg-success">
-                  <i class="ti-info-alt mx-0"></i>
-                </div>
-              </div>
-              <div class="preview-item-content">
-                <h6 class="preview-subject font-weight-normal">{{ notification.verb }}</h6>
-                <p class="font-weight-light small-text mb-0 text-muted">
-                  {{ notification.description }}
-                </p>
-              </div>
-            </a>
-            {% endfor %}
-          </div>
-        </li>
         <li class="nav-item nav-profile dropdown">
           <a class="nav-link dropdown-toggle" href="#" data-toggle="dropdown" id="profileDropdown">
             <img src="{% static "images/Avatar.jpg" %}" alt="profile"/>
@@ -69,7 +43,7 @@
 <div class="row">
     <div class="col-12 grid-margin stretch-card">
 
-      <div class="card">
+      <div class="card" style="border-top: 20px solid #4B49AC; padding: 20px;">
         <div class="row">
         <div class="col-md-6">
             <div class="card-body ">
@@ -92,7 +66,7 @@
                 </div>
 
                 <div style="padding-top:18px; ">
-                    <a href="{% url 'passwordchanged_etudiant' etudiant.id %}" class="btn btn-info btn-rounded btn-fw" style="padding:8px">Changer mon mot de passe</a>
+                    <a href="{% url 'passwordchanged_etudiant' etudiant.id %}" class="btn btn-primary btn-rounded btn-fw" style="padding:8px">Changer mon mot de passe</a>
                 </div>
                
 

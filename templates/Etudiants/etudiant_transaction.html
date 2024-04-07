@@ -52,9 +52,79 @@
   
   {% endblock %}
 
-
+              
 
 
 {% block contenu %}
+
+<div class="row">
+  <div class="col-12  stretch-card" style="margin-bottom: 14px">
+    <div class="card" style="border-top: 20px solid #4B49AC; padding: 20px;">
+      <div class="row">
+        <div class="col-md-6">
+          <div class="card-body">
+            <h4 class="card-title">Mes différents Achat</h4>
+            <div class="template-demo">
+              {% if tickets_achat %}
+              {% for ticket_achat in tickets_achat%}
+              <span class="font-weight-normal text-info" style="font-size:12px;"> {{ticket_achat.date}}</span>
+              <p class="card-description"> {{ticket_achat.description}} </p>
+              {% endfor %}
+              {% endif %}
+            </div>
+          </div>
+        </div>
+        <div class="col-md-6">
+          <div class="card-body">
+            <h4 class="card-title">Tickets Reçus</h4>
+            <div class="template-demo">
+              {% if tickets_recept %}
+              {% for ticket_recept in tickets_recept %}
+              <span class="font-weight-normal text-info" style="font-size:12px;"> {{ticket_recept.date}}</span>
+              <p class="card-description"> {{ticket_recept.description}} </p>
+              {% endfor %}
+              {% endif %}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="row" style="margin-bottom: 380px; margin-top:0px;">
+  <div class="col-12 grid-margin stretch-card" >
+    <div class="card" >
+      <div class="row">
+        <div class="col-md-6">
+          <div class="card-body">
+            <h4 class="card-title">Tickets Envoyés</h4>
+            <div class="template-demo">
+              {% if tickets_envoi %}
+              {% for ticket_envoi in tickets_envoi %}
+              <span class="font-weight-normal text-info" style="font-size:12px;"> {{ticket_envoi.date}}</span>
+              <p class="card-description"> {{ticket_envoi.description}} </p>
+              {% endfor %}
+              {% endif %}
+            </div>
+          </div>
+        </div>
+        {% comment %} <div class="col-md-6">
+          <div class="card-body">
+            <h4 class="card-title">Tickets Consommés</h4>
+            <div class="template-demo">
+              {% if tickets_conso %}
+              {% for ticket_conso in tickets_conso %}
+              <span class="font-weight-normal text-info" style="font-size:12px;"> {{ticket_conso.date}}</span>
+              <p class="card-description"> {{ticket_conso.description}} </p>
+              {% endfor %}
+              {% endif %}
+            </div>
+          </div>
+        </div> {% endcomment %}
+      </div>
+    </div>
+  </div>
+</div>
 
 {% endblock %}
