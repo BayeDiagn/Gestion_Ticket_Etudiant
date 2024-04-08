@@ -115,8 +115,10 @@ class Etudiant (User):
 class Transaction (models.Model):
     description = models.TextField(max_length=250, null = True, blank = True)
     etudiant = models.ForeignKey(Etudiant,related_name="description",on_delete=models.CASCADE)
-    date=models.DateTimeField(auto_now_add=True)
-    #date=models.DateField(auto_now_add=True)
+    tickets_pdej = models.PositiveIntegerField(default=0, null=True, blank=True)
+    tickets_dej = models.PositiveIntegerField(default=0, null=True, blank=True)
+    #date=models.DateTimeField(auto_now_add=True)
+    date=models.DateField(auto_now_add=True)
 
     def __str__(self):
         return f"{self.etudiant.first_name}_{self.etudiant.last_name} (Transactions)"

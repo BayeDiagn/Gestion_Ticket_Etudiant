@@ -142,7 +142,7 @@ def etudiant_home(request):
         
         
         successful, response = invoice.create()
-        print(response)
+        #print(response)
         if successful:
             return redirect(response.get('response_text'))
      
@@ -175,13 +175,13 @@ def payment_done(request):
             pdej = Ticket_Dej(nbre_tickets_dej=petits_dej,etudiant=etudiant)
             pdej.save()
             notify.send(request.user, recipient=request.user, verb=f'Vous avez acheté {petits_dej} ticket(s) de petit-déjeuner')
-            transaction = Transaction(description=f"Achat de {petits_dej} ticket(s) Petit-déjeuner.", etudiant=etudiant)
+            transaction = Transaction(description=f"Achat de {petits_dej} ticket(s) Petit-déjeuner.",tickets_pdej=petits_dej, etudiant=etudiant)
             transaction.save()
         elif petits_dej == 0 :
             dej = Ticket_Repas(nbre_tickets_repas=dejeuners,etudiant=etudiant)
             dej.save()
             notify.send(request.user, recipient=request.user, verb=f'Vous avez acheté {dejeuners} ticket(s) déjeuner')
-            transaction = Transaction(description=f"Achat de {dejeuners} ticket(s) Déjeuner.", etudiant=etudiant)
+            transaction = Transaction(description=f"Achat de {dejeuners} ticket(s) Déjeuner.",tickets_dej=dejeuners, etudiant=etudiant)
             transaction.save()
         else : 
             pdej = Ticket_Dej(nbre_tickets_dej=petits_dej,etudiant=etudiant)
@@ -189,7 +189,7 @@ def payment_done(request):
             dej = Ticket_Repas(nbre_tickets_repas=dejeuners,etudiant=etudiant)
             dej.save()
             notify.send(request.user, recipient=request.user, verb=f'Vous avez acheté {petits_dej} ticket(s) de petit-déjeuner',description=f'Et {dejeuners} ticket(s) déjeuner')
-            transaction = Transaction(description=f"Achat de {petits_dej} ticket(s) Petit-déjeuner et {dejeuners} ticket(s) Déjeuner.", etudiant=etudiant)
+            transaction = Transaction(description=f"Achat de {petits_dej} ticket(s) Petit-déjeuner et {dejeuners} ticket(s) Déjeuner.",tickets_pdej=petits_dej,tickets_dej=dejeuners, etudiant=etudiant)
             transaction.save()
 
         return redirect('home_etudiant')
@@ -402,8 +402,8 @@ class EtudiantViewset(ModelViewSet):
                 ticketDej =  Ticket_Dej.objects.get(etudiant=etudiant)
                 if ticketDej.nbre_tickets_dej > 0:
                     etudiant.decrementer_ticket_dej(1)
-                    transaction = Transaction(description=f"Consommation d'un ticket Petit-déjeuner.", etudiant=etudiant)
-                    transaction.save()
+                    #transaction = Transaction(description=f"Consommation d'un ticket Petit-déjeuner.", etudiant=etudiant)
+                    #transaction.save()
                     return Response({"message": "Decrementation reussie!!","code_permenant": ticketDej.etudiant.identifiant})
                 else:
                     return Response({"error": "Aucun ticket petit-dejeuner!!"}, status=status.HTTP_404_NOT_FOUND)
@@ -418,8 +418,8 @@ class EtudiantViewset(ModelViewSet):
                     ticketRepas =  Ticket_Repas.objects.get(etudiant=etudiant)
                     if ticketRepas.nbre_tickets_repas > 0:
                         etudiant.decrementer_ticket_repas(1)
-                        transaction = Transaction(description=f"Consommation d'un ticket déjeuner.", etudiant=etudiant)
-                        transaction.save()
+                        #transaction = Transaction(description=f"Consommation d'un ticket déjeuner.", etudiant=etudiant)
+                        #transaction.save()
                         return Response({"message": "Decrementation reussie!!","code_permenant": ticketRepas.etudiant.identifiant})
                     else:
                         return Response({"error": "Aucun ticket dejeuner!!"}, status=status.HTTP_404_NOT_FOUND)

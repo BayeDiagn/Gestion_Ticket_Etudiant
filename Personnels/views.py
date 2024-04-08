@@ -1,12 +1,17 @@
 import random
-from django.shortcuts import render
+from django.shortcuts import redirect, render
 from datetime import date, timedelta
+from django.utils import timezone
 from calendar import monthrange
 from django.db.models import Sum
 from django.views.generic import DetailView
 from django.core.paginator import Paginator
+from django.contrib.auth.views import LoginView
+from django.contrib.auth import  logout
+from django.contrib.auth.decorators import login_required,user_passes_test
+from django.urls import reverse_lazy
 
-from Etudiants.models import Etudiant
+from Etudiants.models import Etudiant, Transaction
 from Personnels.models import Personnel
 
 
@@ -17,12 +22,40 @@ from Personnels.models import Personnel
 
 
 
+
+#Personnel Login
+class Personnel_loginView(LoginView):
+    template_name = "Personnels/personnel_login.html"
+    
+    def get_success_url(self):
+        return reverse_lazy('personnel-home')
+    
+    
+#Personnel deconnexion
+def personnel_deconnected(request):
+    logout(request)
+    
+    return redirect("personnel-login")
+
+
+#Decorator pour Personnel
+def personnel_required(view_func):
+    decorated_view_func = user_passes_test(
+        lambda user: user.is_authenticated and user.is_personnel,
+        login_url='personnel-login'
+    )(view_func)
+    return decorated_view_func
+
+
+
+#Home Personnel
+@personnel_required
 def home_personnel(request):
     
     #Aujourd'hui
     aujourdhui = date.today()
     
-    personnel = Personnel.objects.get(identifiant="restau_campus1")
+    personnel = Personnel.objects.get(identifiant=request.user.identifiant)
     tickets_pdej_consommes_aujourd_hui = personnel.tickets.filter(type_ticket='pdej',date=aujourdhui).aggregate(Sum('quantity'))['quantity__sum'] or 0
     tickets_dej_consommes_aujourd_hui = personnel.tickets.filter(type_ticket='dej',date=aujourdhui).aggregate(Sum('quantity'))['quantity__sum'] or 0
     tickets_dinner_consommes_aujourd_hui = personnel.tickets.filter(type_ticket='dinner',date=aujourdhui).aggregate(Sum('quantity'))['quantity__sum'] or 0
@@ -92,35 +125,82 @@ def home_personnel(request):
 
 
 
-#Detail Etudiant
-class EtudiantDetail(DetailView):
-    model = Etudiant
-    template_name='Personnels/details_etudiants.html'
-    
-
-
-
-
-
-
-
-
+#Achat Etudiant
+@personnel_required
 def personnel_graphic(request):
-    
-    personnel = Personnel.objects.get(identifiant="restau_campus1")
     
     # Récupérer la date d'aujourd'hui
     aujourdhui = date.today()
-
-
+    ticket_pdej_achat_today = Transaction.objects.filter(description__icontains='Achat',date=aujourdhui).exclude(tickets_pdej=0).aggregate(Sum('tickets_pdej'))['tickets_pdej__sum'] or 0
+    ticket_dej_achat_today = Transaction.objects.filter(description__icontains='Achat',date=aujourdhui).exclude(tickets_dej=0).aggregate(nbre_dej=Sum('tickets_dej'))['nbre_dej'] or 0
+    
+    montant_pdej_today = 50*ticket_pdej_achat_today
+    montant_dej_today = 100*ticket_dej_achat_today
+    montant_today = montant_pdej_today + montant_dej_today
+    
+    #Semaine
+    debut_semaine = aujourdhui - timedelta(days=aujourdhui.weekday())
+    fin_semaine = debut_semaine + timedelta(days=6)
+    
+    ticket_pdej_achat_week = Transaction.objects.filter(description__icontains='Achat',date__range=(debut_semaine, fin_semaine)).exclude(tickets_pdej=0).aggregate(Sum('tickets_pdej'))['tickets_pdej__sum'] or 0
+    ticket_dej_achat_week = Transaction.objects.filter(description__icontains='Achat',date__range=(debut_semaine, fin_semaine)).exclude(tickets_dej=0).aggregate(nbre_dej=Sum('tickets_dej'))['nbre_dej'] or 0
+    
+    montant_pdej_week = 50*ticket_pdej_achat_week
+    montant_dej_week = 100*ticket_dej_achat_week
+    montant_week = montant_pdej_week + montant_dej_week
+    
+    #Mois
+    # Récupérer le premier et le dernier jour du mois en cours
+    premier_jour_mois = date(aujourdhui.year, aujourdhui.month, 1)
+    dernier_jour_mois = date(aujourdhui.year, aujourdhui.month, monthrange(aujourdhui.year, aujourdhui.month)[1])
+    
+    ticket_pdej_achat_mois = Transaction.objects.filter(description__icontains='Achat',date__range=(premier_jour_mois,dernier_jour_mois)).exclude(tickets_pdej=0).aggregate(Sum('tickets_pdej'))['tickets_pdej__sum'] or 0
+    ticket_dej_achat_mois = Transaction.objects.filter(description__icontains='Achat',date__range=(premier_jour_mois, dernier_jour_mois)).exclude(tickets_dej=0).aggregate(nbre_dej=Sum('tickets_dej'))['nbre_dej'] or 0
+    
+    montant_pdej_mois = 50*ticket_pdej_achat_mois
+    montant_dej_mois = 100*ticket_dej_achat_mois
+    montant_mois = montant_pdej_mois + montant_dej_mois
     
     
+    #Annees
+    # Récupérer le premier et le dernier jour de l'année en cours
+    premier_jour_annee = date(aujourdhui.year, 1, 1)
+    dernier_jour_annee = date(aujourdhui.year, 12, 31)
     
-    colors = [
+    ticket_pdej_achat_annee = Transaction.objects.filter(description__icontains='Achat',date__range=(premier_jour_annee, dernier_jour_annee)).exclude(tickets_pdej=0).aggregate(Sum('tickets_pdej'))['tickets_pdej__sum'] or 0
+    ticket_dej_achat_annee = Transaction.objects.filter(description__icontains='Achat',date__range=(premier_jour_annee, dernier_jour_annee)).exclude(tickets_dej=0).aggregate(nbre_dej=Sum('tickets_dej'))['nbre_dej'] or 0
+    
+    montant_pdej_annee = 50*ticket_pdej_achat_annee
+    montant_dej_annee = 100*ticket_dej_achat_annee
+    montant_annee = montant_pdej_annee + montant_dej_annee
+    
+    
+    color = [
         "#"+''.join([random.choice('0123456789ABCDEF') for j in range(6)])  
         for i in range(3)
     ]
+    colors = [
+        "#"+''.join([random.choice('456789ABCDEF0123') for j in range(6)])  
+        for i in range(3)
+    ]
     
-    context = {"colors":colors,}   
+    context = {"colors":colors,"color":color,"ticket_pdej_achat_today":ticket_pdej_achat_today,"ticket_dej_achat_today":ticket_dej_achat_today,
+               "montant_pdej_today":montant_pdej_today,"montant_dej_today":montant_dej_today,"montant_today":montant_today,
+               "ticket_pdej_achat_week":ticket_pdej_achat_week,"ticket_dej_achat_week":ticket_dej_achat_week,"montant_week": montant_week,
+               "montant_pdej_week":montant_pdej_week,"montant_dej_week":montant_dej_week,"ticket_pdej_achat_mois":ticket_pdej_achat_mois,
+               "ticket_dej_achat_mois":ticket_dej_achat_mois,"montant_pdej_mois": montant_pdej_mois,"montant_dej_mois": montant_dej_mois,
+               "montant_mois": montant_mois,"ticket_pdej_achat_annee":ticket_pdej_achat_annee,"ticket_dej_achat_annee":ticket_dej_achat_annee,
+               "montant_pdej_annee":montant_pdej_annee,"montant_dej_annee":montant_dej_annee,"montant_annee":montant_annee
+               }   
     
     return render(request,'Personnels/personnel_vente.html',context)
+
+
+
+
+
+#Detail Etudiant
+#@personnel_required
+class EtudiantDetail(DetailView):
+    model = Etudiant
+    template_name='Personnels/details_etudiants.html'

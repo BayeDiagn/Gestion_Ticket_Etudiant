@@ -28,55 +28,16 @@
             </li>
         </ul>
         <ul class="navbar-nav navbar-nav-right">
-            <li class="nav-item dropdown">
-                <a class="nav-link count-indicator dropdown-toggle position-relative" id="notificationDropdown"
-                    href="#" data-toggle="dropdown">
-                    <i class="icon-bell mx-0"></i>
-                    {% if nbre > 0  %}
-                    <span id="notificationBadge" class="badge badge-primary badge-pill"
-                        style="position: absolute;top: -1px;right: -3px;font-size: 0.6rem;padding: 2px 5px;">{{ nbre }}</span>
-                    {% endif %}
-                </a>
-                <div class="dropdown-menu dropdown-menu-right navbar-dropdown preview-list"
-                    aria-labelledby="notificationDropdown" id="notificationBox">
-                    <p class="mb-0 font-weight-normal float-left dropdown-header">Notifications</p>
-                    {% if nbre > 0 %}
-                    {% for notification in notifications %}
-                    <a class="dropdown-item preview-item">
-                        <div class="preview-thumbnail">
-                            <div class="preview-icon bg-info">
-                                <i class="ti-info-alt mx-0"></i>
-                            </div>
-                        </div>
-                        <div class="preview-item-content">
-                            <h6 class="preview-subject font-weight-normal" id="notificationDropdown">
-                                {% if notification.verb %} {{ notification.verb }} {% else %} {% endif %}</h6>
-                            <p class="font-weight-normal small-text mb-0 ">
-                                {% if notification.description %} {{ notification.description }} {% else %} {% endif %}
-                            </p>
-                        </div>
-                    </a>
-                    {% endfor %}
-                    <hr style="margin-top: 8px; margin-bottom: 0px;">
-                    <div class="preview-item-content">
-                        <a href="{% url 'clear_notification' %}" class="dropdown-item preview-item"
-                            style="padding-left:100px">
-                            <strong>Supprimer les notifications</strong>
-                        </a>
-                    </div>
-                    {% endif %}
-                </div>
-            </li>
             <li class="nav-item nav-profile dropdown">
                 <a class="nav-link dropdown-toggle" href="#" data-toggle="dropdown" id="profileDropdown">
                     <img src="{% static "images/Avatar.jpg" %}" alt="profile" />
                 </a>
                 <div class="dropdown-menu dropdown-menu-right navbar-dropdown" aria-labelledby="profileDropdown">
-                    <a href="{% url 'detail_etudiant' request.user.id %}" class="dropdown-item">
+                    <a href="#" class="dropdown-item">
                         <i class="fa-solid fa-user text-primary"></i>
                         <span class="ml-2">Profil</span>
                     </a>
-                    <a href="{% url 'deconnected_etudiant' %}" class="dropdown-item z-50">
+                    <a href="{% url 'personnel-deconnexion' %}" class="dropdown-item z-50">
                         <i class="ti-power-off text-primary"></i>
                         Déconnecter
                     </a>
@@ -99,7 +60,8 @@
     <div class="col-lg-6 grid-margin stretch-card">
       <div class="card">
         <div class="card-body">
-          <h4 class="card-title">Diagramme à barres</h4>
+          <h4 class="card-title">Diagramme à barres (Journée)</h4>
+          <p ><span class="font-weight-lighter text-muted">Montant total</span> : <span class="text-info"><strong>{{montant_today}}</strong> cfa</span></p>
           <div>
             <canvas id="myBarChart"height="400"width="600"></canvas>
           </div>
@@ -108,10 +70,10 @@
           
           <script>
             const dataBar = {
-              labels: ['Tickets_Petit_Dej', 'Tickets_Dejeuner', 'Ticket_Diner'],
+              labels: ['Tickets_Petit_Dej', 'Tickets_Repas'],
               datasets: [{
-                label: "Consommés dans l'année",
-                data: [{{tickets_pdej_of_year}},{{tickets_dej_of_year}},{{tickets_diner_of_year}}],
+                label: "Achetés dans la journée",
+                data: [{{ticket_pdej_achat_today}},{{ticket_dej_achat_today}}],
                 
                 backgroundColor: {{colors|safe}},
                 borderColor: {{colors|safe}},
@@ -129,21 +91,27 @@
                   y: {
                     beginAtZero: true
                   }
-                }     
+                }, 
+                barPercentage: 0.7,   
               }
             };
             const ctxBar = document.getElementById('myBarChart').getContext('2d');
             new Chart(ctxBar, configBar);
           </script>
         </div>
-        <p class="text-center"><strong>Montant</strong> : <span class="text-info"> <strong>{{montant_total_year}}</strong> cfa</span></p>
-        <p class="pl-3"> Ce diagramme à barres représente la répartition des tickets universitaires consommés au cours de l'année.</p>
+        <div class="d-flex justify-content-between">
+          <p class="pl-3"><span class="font-weight-lighter text-muted">Petits_Dej</span> : <span class="text-info"><strong>{{montant_pdej_today}}</strong> cfa</span></p>
+          <p class="pr-3"><span class="font-weight-lighter text-muted">Repas</span> : <span class="text-info"><strong>{{montant_dej_today}}</strong> cfa</span></p>
+        </div>
+        <p class="pl-3"> Ce diagramme illustre la <span class="text-info">répartition quotidienne des achats</span> de divers tickets universitaires.</p>
       </div>
     </div>
-    <!--div class="col-lg-6 grid-margin stretch-card">
+
+    <div class="col-lg-6 grid-margin stretch-card">
       <div class="card">
         <div class="card-body">
-          <h4 class="card-title">Graphe Lineaire</h4>
+          <h4 class="card-title">Graphe Lineaire (Semaine)</h4>
+          <p ><span class="font-weight-lighter text-muted">Montant total</span> : <span class="text-info"><strong>{{montant_week}}</strong> cfa</span></p>
           <div>
             <canvas id="myLineChart" height="400"width="600"></canvas>
           </div>
@@ -152,12 +120,12 @@
           
           <script>
             const dataLine = {
-              labels: {{liste_entrep_name|safe}},
+              labels: ['Tickets_Petit_Dej', 'Tickets_Repas'],
               datasets: [{
-                label: 'Nombre Etudiants par Entreprise',
-                data: {{liste_entrep_nbre|safe}},
+                label: 'Achetés dans la semaine',
+                data: [{{ticket_pdej_achat_week}},{{ticket_dej_achat_week}}],
                 fill: false,
-                borderColor: {{colors|safe}},
+                //borderColor: {{colors|safe}},
                 tension: 0.4 
   
               }]
@@ -175,8 +143,117 @@
             new Chart(ctxLine, configLine);
           </script>
         </div>
-        <p class="pl-3"> Ce graphe en barres représente la répartition des étudiants en fonction des entreprises qui les accueillent le plus.</p>
+        <div class="d-flex justify-content-between">
+          <p class="pl-3"><span class="font-weight-lighter text-muted">Petits_Dej</span> : <span class="text-info"><strong>{{montant_pdej_week}}</strong> cfa</span></p>
+          <p class="pr-3"><span class="font-weight-lighter text-muted">Repas</span> : <span class="text-info"><strong>{{montant_dej_week}}</strong> cfa</span></p>
+        </div>
+        <p class="pl-3"> Ce diagramme illustre la <span class="text-info">répartition des achats hebdomadaires</span> de divers tickets universitaires.</p>
       </div>
-    </div-->
+    </div>
 </div>
+
+<div class="row mb-6 pb-10">
+  <div class="col-lg-6 grid-margin stretch-card">
+    <div class="card">
+      <div class="card-body">
+        <h4 class="card-title">graphique en secteurs (Mois)</h4>
+        <p ><span class="font-weight-lighter text-muted">Montant total</span> : <span class="text-info"><strong>{{montant_mois}}</strong> cfa</span></p>
+        <div>
+          <canvas id="myDoughnutChart" height="400"width="600"></canvas>
+        </div>
+        
+        <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+        
+        <script>
+          const dataDoughnut = {
+            labels: ['Tickets_Petit_Dej', 'Tickets_Repas'],
+            datasets: [{
+              label: 'Achetés durant le mois',
+              data: [{{ticket_pdej_achat_mois}},{{ticket_dej_achat_mois}}],
+              backgroundColor: [
+                                '#248AFD', // info
+                                '#4B49AC', // primary
+                              ],
+              hoverOffset: 4
+
+            }]
+          };
+        
+          const configDoughnut = {
+            type: 'doughnut',
+            data: dataDoughnut,
+            options: {
+              cutoutPercentage: 0,
+              scales: {
+                x: {
+                  display: false // Désactiver l'axe x
+                },
+                y: {
+                  display: false // Désactiver l'axe y
+                }
+              }
+            }  
+          };
+          const ctxDoughnut = document.getElementById('myDoughnutChart').getContext('2d');
+          new Chart(ctxDoughnut, configDoughnut);
+        </script>
+      </div>
+      <div class="d-flex justify-content-between">
+        <p class="pl-3"><span class="font-weight-lighter text-muted">Petits_Dej</span> : <span class="text-info"><strong>{{montant_pdej_mois}}</strong> cfa</span></p>
+        <p class="pr-3"><span class="font-weight-lighter text-muted">Repas</span> : <span class="text-info"><strong>{{montant_dej_mois}}</strong> cfa</span></p>
+      </div>
+      <p class="pl-3"> Ce graphique présente la <span class="text-info">répartition mensuelle des achats</span> de divers tickets universitaires.</p>
+    </div>
+  </div>
+
+  <div class="col-lg-6 grid-margin stretch-card">
+    <div class="card ">
+      <div class="card-body">
+        <h4 class="card-title">Diagramme à barres (Année)</h4>
+        <p ><span class="font-weight-lighter text-muted">Montant total</span> : <span class="text-info"><strong>{{montant_annee}}</strong> cfa</span></p>
+        <div>
+          <canvas id="mySecondBarChart" height="650"width="700"></canvas>
+        </div>
+        
+        <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+        
+        <script>
+          const dataSecondBar = {
+            labels: ['Tickets_Petit_Dej', 'Tickets_Repas'],
+            datasets: [{
+              label: "Achetés dans l'année",
+              data: [{{ticket_pdej_achat_annee}},{{ticket_dej_achat_annee}}],
+              
+              backgroundColor: {{color|safe}},
+              borderColor: {{color|safe}},
+              borderWidth: 1
+
+            }]
+          };
+        
+          const configSecondBar = {
+            type: 'bar',
+            data: dataSecondBar,
+            options: {
+              cutoutPercentage: 0,
+              scales: {
+                y: {
+                  beginAtZero: true
+                }
+              }
+            }
+          };
+          const ctxSecondBar = document.getElementById('mySecondBarChart').getContext('2d');
+          new Chart(ctxSecondBar, configSecondBar);
+        </script>
+      </div>
+      <div class="d-flex justify-content-between">
+        <p class="pl-3"><span class="font-weight-lighter text-muted">Petits_Dej</span> : <span class="text-info"><strong>{{montant_pdej_annee}}</strong> cfa</span></p>
+        <p class="pr-3"><span class="font-weight-lighter text-muted">Repas</span> : <span class="text-info"><strong>{{montant_dej_annee}}</strong> cfa</span></p>
+      </div>
+      <p class="pl-3"> Cette représentation graphique met en lumière la <span class="text-info">répartition annuelle des achats</span> de différents tickets universitaires.</p>
+    </div>
+  </div>
+</div>
+
 {% endblock %}

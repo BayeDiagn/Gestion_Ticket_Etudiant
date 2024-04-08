@@ -159,15 +159,7 @@ LOGIN_URL = "login_etudiant"
 
 
 
-EMAIL_HOST = 'sandbox.smtp.mailtrap.io'
-EMAIL_HOST_USER = 'f7e34b8aa0a529'
-EMAIL_HOST_PASSWORD = 'e6e4d4e74cd32e'
-EMAIL_PORT = '2525'
-
-
-#Cle Paydunyu
-PAYDUNYA_ACCESS_TOKENS = {
-  'PAYDUNYA-MASTER-KEY': "NKPhDhRm-UPJd-JsCK-KZcK-b19fA8aFBXb4",
-  'PAYDUNYA-PRIVATE-KEY': "live_private_SkPudqRpnE5t8YuZRwGCYvuO3Sy",
-  'PAYDUNYA-TOKEN': "5NSjUZ6xhI9c2nDMquLG"
-}
+try:
+    from .local_settings import *
+except ImportError:
+    pass
