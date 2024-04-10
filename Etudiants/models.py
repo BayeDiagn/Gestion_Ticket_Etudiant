@@ -34,32 +34,32 @@ class Etudiant (User):
     #Décrementer ticket repas
     def decrementer_ticket_repas(self,nbre_ticket):
         from Tickets.models import Ticket_Repas
-        ticket_repas = Ticket_Repas.objects.get(etudiant=self) 
-        ticket_repas.nbre_tickets_repas -= nbre_ticket
-        ticket_repas.save()
-            #print(f"Ticket repas décrémenté pour {self.first_name} {self.last_name}, {ticket_repas.nbre_tickets_repas} tickets restants.")
-        # else:
-        #     print(f"Pas de tickets repas restants pour {self.first_name} {self.last_name}")
+        tickets_repas_etudiant = Ticket_Repas.objects.filter(etudiant=self)
+        nbre_tickets_repas_max = max(ticket.nbre_tickets_repas for ticket in tickets_repas_etudiant)
+        tickets_repas_etudiant = Ticket_Repas.objects.filter(etudiant=self, nbre_tickets_repas=nbre_tickets_repas_max).last()
+        tickets_repas_etudiant.nbre_tickets_repas -= nbre_ticket
+        tickets_repas_etudiant.save()
+          
      
      
             
     #décrementer ticket dej         
     def decrementer_ticket_dej(self,nbre_ticket):
         from Tickets.models import Ticket_Dej
-        ticket_dej = Ticket_Dej.objects.get(etudiant=self) 
+        tickets_dej_etudiant = Ticket_Dej.objects.filter(etudiant=self)
+        nbre_tickets_dej_max = max(ticket.nbre_tickets_dej for ticket in tickets_dej_etudiant)
+        tickets_dej_etudiant = Ticket_Dej.objects.filter(etudiant=self, nbre_tickets_dej=nbre_tickets_dej_max).last()
         # if ticket_dej.nbre_tickets_dej > 0:
-        ticket_dej.nbre_tickets_dej -= nbre_ticket
-        ticket_dej.save()
-        #     print(f"Ticket dej décrémenté pour {self.first_name} {self.last_name}, {ticket_dej.nbre_tickets_dej} tickets restants.")
-        # else:
-        #     print(f"Pas de tickets dej restants pour {self.first_name} {self.last_name}")
+        tickets_dej_etudiant.nbre_tickets_dej -= nbre_ticket
+        tickets_dej_etudiant.save()
+
      
             
     
     #Incrementer ticket repas
     def incrementer_ticket_repas(self,nbre_tickets):
         from Tickets.models import Ticket_Repas
-        ticket_repas = Ticket_Repas.objects.get(etudiant=self) 
+        ticket_repas = Ticket_Repas.objects.filter(etudiant=self).last() 
         if nbre_tickets > 0:
             ticket_repas.nbre_tickets_repas += nbre_tickets
             ticket_repas.save()
@@ -69,7 +69,7 @@ class Etudiant (User):
     #Incrementer ticket dej        
     def incrementer_ticket_dej(self,nbre_tickets):
         from Tickets.models import Ticket_Dej
-        ticket_dej = Ticket_Dej.objects.get(etudiant=self) 
+        ticket_dej = Ticket_Dej.objects.filter(etudiant=self).last() 
         if nbre_tickets > 0:
             ticket_dej.nbre_tickets_dej += nbre_tickets
             ticket_dej.save()

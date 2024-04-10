@@ -1,13 +1,15 @@
 import datetime
 from decimal import Decimal
 from django.urls import reverse_lazy
-from django.shortcuts import redirect, render
+from django.shortcuts import redirect, render,get_object_or_404
+
 
 from Etudiants.forms import EtudiantCreationForm, SendTicketForm
 from Etudiants.models import Etudiant, Transaction
 
 from rest_framework.views import APIView
 from Etudiants.serializers import EtudiantSerializer
+from Personnels.serializers import PersonnelSerializer, TicketConsommerSerializer
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
 from rest_framework.decorators import action
@@ -17,10 +19,10 @@ from django.views.generic import DetailView,CreateView
 from django.contrib.auth.decorators import login_required,user_passes_test
 from django.contrib.auth import  logout, update_session_auth_hash
 
-from Personnels.models import Personnel
+from Personnels.models import Personnel, TicketConsommer
 from Tickets.models import Ticket_Dej, Ticket_Repas
 from django.db import transaction
-from django.db.models import Q , Sum
+from django.db.models import Q , Sum, Max
 from django.contrib import messages
 from notifications.models import Notification
 from notifications.signals import notify
@@ -296,6 +298,7 @@ class MyPasswordResetDoneView(PasswordResetDoneView):
 @etudiant_required
 @login_required
 def sendTicket(request):
+    
     form = SendTicketForm()
     if request.method == 'POST':
         form = SendTicketForm(data=request.POST)
@@ -304,7 +307,8 @@ def sendTicket(request):
             nbreticket = form.cleaned_data.get('nbre_tickets')
             ticket_type = form.cleaned_data.get('Typeofticket')
             
-            etudiantsend = Etudiant.objects.get(identifiant=request.user.identifiant)
+            etudiantsend = get_object_or_404(Etudiant, identifiant=request.user.identifiant)
+            
             try:
                 etudiantreceive = Etudiant.objects.get(identifiant=code_permenant)
             except Etudiant.DoesNotExist:
@@ -314,8 +318,10 @@ def sendTicket(request):
              
             if ticket_type == 'dej':
                 try:
-                    ticketdej_sender = Ticket_Dej.objects.get(etudiant=etudiantsend)
-                    if nbreticket <= ticketdej_sender.nbre_tickets_dej:
+                    tickets_dej_etudiant_sender = Ticket_Dej.objects.filter(etudiant=etudiantsend)
+                    nbre_tickets_dej_max = max(ticket.nbre_tickets_dej for ticket in tickets_dej_etudiant_sender)
+                    
+                    if nbreticket <= nbre_tickets_dej_max:
                         etudiantreceive.incrementer_ticket_dej(nbreticket)
                         etudiantsend.decrementer_ticket_dej(nbreticket)
                         nbreticket = int(nbreticket)
@@ -327,16 +333,17 @@ def sendTicket(request):
                         transactionreceiver.save()
                         return redirect('sendticket')
                     else:
-                        messages.error(request, 'Nombre de tickets Petit-déjeuner insuffisant!!')
+                        messages.error(request, f'Vous ne pouvez pas envoyer plus de {nbre_tickets_dej_max} tickets petit-dej!!')
                 except Ticket_Dej.DoesNotExist:
-                    messages.error(request, 'Nombre de tickets Petit-déjeuner insuffisant!!')
+                    messages.error(request, 'Nombre de tickets Petit-déjeuner insuffisant!')
                 return redirect('sendticket')
                 
                 
             if ticket_type == 'repas':
                 try:
-                    ticketrepas_sender = Ticket_Repas.objects.get(etudiant=etudiantsend)
-                    if nbreticket <= ticketrepas_sender.nbre_tickets_repas: 
+                    tickets_repas_etudiant_sender = Ticket_Repas.objects.filter(etudiant=etudiantsend)
+                    nbre_tickets_repas_max = max(ticket.nbre_tickets_repas for ticket in tickets_repas_etudiant_sender)
+                    if nbreticket <= nbre_tickets_repas_max: 
                         etudiantreceive.incrementer_ticket_repas(nbreticket)
                         etudiantsend.decrementer_ticket_repas(nbreticket)
                         nbreticket = int(nbreticket)
@@ -348,7 +355,7 @@ def sendTicket(request):
                         transactionreceiver.save()
                         return redirect('sendticket')
                     else:
-                        messages.error(request, 'Nombre de tickets Déjeuner insuffisant!!')            
+                        messages.error(request, f'Vous ne pouvez pas envoyer plus de {nbre_tickets_dej_max} tickets déjeuner!!')        
                 except Ticket_Repas.DoesNotExist:
                     messages.error(request, 'Nombre de tickets Déjeuner insuffisant!!')
                     return redirect('sendticket')
@@ -399,12 +406,13 @@ class EtudiantViewset(ModelViewSet):
         #decrementer ticket dej
         if (heure)>=6 and int(heure)<=11:
             try:
-                ticketDej =  Ticket_Dej.objects.get(etudiant=etudiant)
-                if ticketDej.nbre_tickets_dej > 0:
+                ticketDej =  Ticket_Dej.objects.filter(etudiant=etudiant)
+                nbre_tickets_dej_max = max(ticket.nbre_tickets_dej for ticket in ticketDej)
+                if nbre_tickets_dej_max > 0:
                     etudiant.decrementer_ticket_dej(1)
                     #transaction = Transaction(description=f"Consommation d'un ticket Petit-déjeuner.", etudiant=etudiant)
                     #transaction.save()
-                    return Response({"message": "Decrementation reussie!!","code_permenant": ticketDej.etudiant.identifiant})
+                    return Response({"message": "Decrementation reussie!!","typeofticket":"pdej"})
                 else:
                     return Response({"error": "Aucun ticket petit-dejeuner!!"}, status=status.HTTP_404_NOT_FOUND)
             except Ticket_Dej.DoesNotExist:
@@ -412,20 +420,38 @@ class EtudiantViewset(ModelViewSet):
                     status=status.HTTP_404_NOT_FOUND)
         
         
-        #decrementer ticket repas  
-        elif (heure)>=12 and (heure)<=17 or (heure)>=0 and int(heure)<=23:
+        #decrementer ticket dejeuner 
+        elif (heure)>=12 and (heure)<=15 :
                 try:
-                    ticketRepas =  Ticket_Repas.objects.get(etudiant=etudiant)
-                    if ticketRepas.nbre_tickets_repas > 0:
+                    ticketRepas =  Ticket_Repas.objects.filter(etudiant=etudiant)
+                    nbre_tickets_repas_max = max(ticket.nbre_tickets_repas for ticket in ticketRepas)
+                    if nbre_tickets_repas_max > 0:
                         etudiant.decrementer_ticket_repas(1)
                         #transaction = Transaction(description=f"Consommation d'un ticket déjeuner.", etudiant=etudiant)
                         #transaction.save()
-                        return Response({"message": "Decrementation reussie!!","code_permenant": ticketRepas.etudiant.identifiant})
+                        return Response({"message": "Decrementation reussie!!" ,"typeofticket":"dej"})
                     else:
                         return Response({"error": "Aucun ticket dejeuner!!"}, status=status.HTTP_404_NOT_FOUND)
                 except Ticket_Repas.DoesNotExist:
                     return Response({"error": "Aucun ticket dejeuner!!"},
                     status=status.HTTP_404_NOT_FOUND)
+        
+         #decrementer ticket dinner           
+        elif (heure)>=18 and int(heure)<=22:
+            try:
+                ticketRepas =  Ticket_Repas.objects.filter(etudiant=etudiant)
+                nbre_tickets_repas_max = max(ticket.nbre_tickets_repas for ticket in ticketRepas)
+                if nbre_tickets_repas_max > 0:
+                    etudiant.decrementer_ticket_repas(1)
+                    #transaction = Transaction(description=f"Consommation d'un ticket déjeuner.", etudiant=etudiant)
+                    #transaction.save()
+                    return Response({"message": "Decrementation reussie!!","typeofticket":"dinner"})
+                else:
+                    return Response({"error": "Aucun ticket dejeuner!!"}, status=status.HTTP_404_NOT_FOUND)
+            except Ticket_Repas.DoesNotExist:
+                return Response({"error": "Aucun ticket dejeuner!!"},
+                status=status.HTTP_404_NOT_FOUND)
+        
         else:
             return Response({"error": "Hors delai!!"}, status=status.HTTP_404_NOT_FOUND)
               
@@ -435,17 +461,44 @@ class EtudiantViewset(ModelViewSet):
         return Response(serializer.data)
     
     
-                        
     
+#TicketConsommer
+class TicketConsommerViewset(APIView):
+    serializer_class = TicketConsommerSerializer
     
-                        
-    # def partial_update(self, request,cp=None):
-    #      etudiant = self.get_queryset().get(code_permenant=cp)
-    #      etudiant.decrementer_ticket_repas();
+    def get_queryset(self):
+         queryset = TicketConsommer.objects.all()  
+         return queryset
+    
+    def get(self, request, pk=None):
+        try:
+            personnel = Personnel.objects.get(identifiant=pk)
+        except Personnel.DoesNotExist:
+            return Response({'error': 'Personnel non trouvé'}, status=status.HTTP_404_NOT_FOUND)
         
-    #      serializer = EtudiantSerializer(etudiant)
-    #      return Response(serializer.data)
+        tickets = self.get_queryset().filter(personnel=personnel)
+        serializer = TicketConsommerSerializer(tickets, many=True)
+        return Response(serializer.data)
     
+    
+    def post(self, request,pk=None):
+        #identifiant = request.data.get('identifiant')
+        type_ticket = request.data.get('type_ticket')
+        quantity = request.data.get('quantity')
+        
+        try:
+            personnel = Personnel.objects.get(identifiant=pk)
+        except Personnel.DoesNotExist:
+            return Response({'error': 'Personnel non trouvé'}, status=status.HTTP_404_NOT_FOUND)
+            
+        ticket = TicketConsommer(type_ticket=type_ticket, quantity=quantity, personnel=personnel)
+        ticket.save()
+        serializer = TicketConsommerSerializer(ticket)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+               
+    
+    
+                    
     
     
 

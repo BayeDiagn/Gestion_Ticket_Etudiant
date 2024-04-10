@@ -7,8 +7,10 @@
 
 <nav class="navbar col-lg-12 col-12 p-0 fixed-top d-flex flex-row">
     <div class="text-center navbar-brand-wrapper d-flex align-items-center justify-content-center">
-        <a class="navbar-brand brand-logo mr-5" href="#"><img src="{% static "images/uadb.png" %}" class="mr-2"
-                alt="logo" /></a>
+        <a class="navbar-brand brand-logo mr-5" href="#">
+            <img src="{% static "images/uadb.png" %}" class="mr-2"alt="logo" />
+           
+        </a>
         <a class="navbar-brand brand-logo-mini" href="#"><img src="{% static "images/uadb.png" %}"
                 alt="logo" /></a>
     </div>
@@ -115,7 +117,8 @@
     <div class="col-md-4 grid-margin transparent">
         <div class="card card-tale">
             <div class="card-body">
-                <p class="mb-4 fs-28">Nombre Tickets Petits-déjeuners Consommé</p>
+                <p class="mb-0 fs-28">Nombre Tickets Petits-déjeuners</p>
+                <p>Consommé</p>
                 <p class="fs-30 mb-2"><strong>{{nbreTPD}}</strong> </p>
             </div>
         </div>
@@ -124,7 +127,8 @@
     <div class="col-md-4 grid-margin transparent">
         <div class="card card-light-blue">
             <div class="card-body">
-                <p class="mb-4 fs-28">Nombre Tickets Déjeuners Consommé</p>
+                <p class="mb-0 fs-28">Nombre Tickets Déjeuners</p>
+                <p>Consommé</p>
                 <p class="fs-30 mb-2"><strong>{{nbreTRP}}</strong> </p>
             </div>
         </div>
@@ -133,7 +137,8 @@
     <div class="col-md-4 grid-margin transparent">
         <div class="card card-dark-blue">
             <div class="card-body">
-                <p class="mb-4 fs-28">Nombre Tickets Dinners Consommé</p>
+                <p class="mb-0 fs-28">Nombre Tickets Dinners</p>
+                <p>Consommé</p>
                 <p class="fs-30 mb-2"><strong>{{nbreTD}}</strong> </p>
             </div>
         </div>
@@ -363,7 +368,8 @@
                   <th> Code permenant </th>
                   <th> Prénom </th>
                   <th> Nom </th>
-                  <th> Détails </th>
+                  <th> Bloquer </th>
+                  <th> Détails </th>  
                 </tr>
               </thead>
               <tbody>
@@ -377,6 +383,10 @@
                   </td>
                   <td>
                     <a href="{% url 'etudiantdetail' etudiant.id %}"style="text-decoration: none; color:#305863"> {{etudiant.last_name}}</a>
+                  </td>
+                  <td> 
+                    <input type="checkbox" {% if etudiant.is_active %} {% else %}checked {% endif %}  disabled>
+                    <!--a href="{% url 'etudiantdetail' etudiant.id %}" style="text-decoration: none; color: #0693BB;">{{ etudiant.is_active }}</a-->
                   </td>
                   <td> <a href="{% url 'etudiantdetail' etudiant.id %}"style="text-decoration: none; color: #0693BB;"> <i class="ti-eye"></i> </a></td>
                 </tr>

@@ -57,6 +57,200 @@
 
 
 {% block contenu %}
+<!--Contenu Principal-->    
 
+<div class="row">
+    <div class="col-12 grid-margin stretch-card">
+
+      <div class="card" style="border-top: 20px solid #4B49AC; padding: 20px;">
+        <div class="row">
+        <div class="col-md-8">
+            <div class="col-sm-6" style="padding:0">
+                {% if messages %}
+                {% for message in messages %}
+                    {% if message.tags == 'error' %}
+                        <div class="alert alert-danger border-0 rounded  message" role="alert">
+                            {{ message }}
+                        </div>
+                    {% elif message.tags == 'success' %}
+                        <div class="alert alert-success border-0 rounded border-success  message" role="alert">
+                            {{ message }}
+                        </div>
+                    {% else %}
+                    <div class="alert alert-info border-0 rounded border-success  message" role="alert">
+                        {{ message }}
+                    </div>
+                    {% endif %}
+                {% endfor %}
+                {% endif %} 
+            </div>
+            <div class="card-body ">
+              <h4 class="card-title text-primary">Informations personnelle</h4> 
+              <div class="template-demo" style="">
+                <div style="display: flex; flex-direction: column;">
+                    <div style="display: flex; align-items: center; margin-bottom: 15px;">
+                        <p style="font-weight: 900; margin: 0;">Prénom </p>
+                        <span class="text-primary" style="margin-left: 90px; padding-left: 90px;">{{ etudiant.first_name }}</span>
+                    </div>
+                    <div style="display: flex; align-items: center; margin-bottom: 15px;">
+                        <p style="font-weight: 900; margin: 0;">Nom </p>
+                        <span class="text-primary" style=" margin-left: 110px; padding-left: 90px;">{{ etudiant.last_name }}</span>
+                    </div>
+                    <div style="display: flex; align-items: center; margin-bottom: 15px;">
+                        <p style="font-weight: 900; margin: 0;">Code Permenant </p>
+                        <span class="text-primary" style=" margin-left: 70px; padding-left: 50px;">{{ etudiant.identifiant }}</span>
+                    </div>
+
+                </div>
+
+                <div class="row ">
+                    <div class="col-sm-6" style="padding-top:18px; ">
+                        <a href="{% url 'block_etudiant' etudiant.id %}" class="btn btn-outline-linkedin btn-rounded btn-fw w-50" style="padding:8px">Bloquer</a>
+                    </div>
+
+                    <div class="col-sm-6" style="padding-top:18px; ">
+                        <a href="{% url 'unblock_etudiant' etudiant.id %}" class="btn btn-outline-info btn-rounded btn-fw w-50" style="padding:8px">Débloquer</a>
+                    </div>
+
+                </div>
+               
+
+              </div>
+            </div>
+        </div>
+
+        <!--div class="col-md-6">
+            <div class="card-body">
+              <div class="template-demo" style="display: flex; align-items: center;">
+                <div style="width: 70%;">
+                    <p class="text-primary" style="font-weight: 600;">{{ etudiant.last_name }}</p>
+                    <p class="text-primary" style="font-weight: 600;">{{ etudiant.identifiant }}</p>
+                </div>
+            </div>
+            </div>
+        </div-->
+    
+    
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="row mb-6 pb-10">
+    <div class="col-lg-6 grid-margin stretch-card">
+      <div class="card">
+        <div class="card-body">
+          <h4 class="card-title">graphique en secteurs (Mois)</h4>
+          <p ><span class="font-weight-lighter text-muted">Montant total</span> : <span class="text-info"><strong>{{montant_mois}}</strong> cfa</span></p>
+          <div>
+            <canvas id="myDoughnutChart" height="400"width="600"></canvas>
+          </div>
+          
+          <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+          
+          <script>
+            const dataDoughnut = {
+              labels: ['Tickets_Petit_Dej', 'Tickets_Repas'],
+              datasets: [{
+                label: 'Achetés durant le mois',
+                data: [{{ticket_pdej_achat_mois}},{{ticket_dej_achat_mois}}],
+                backgroundColor: [
+                                  '#248AFD', // info
+                                  '#4B49AC', // primary
+                                ],
+                hoverOffset: 4
+  
+              }]
+            };
+          
+            const configDoughnut = {
+              type: 'doughnut',
+              data: dataDoughnut,
+              options: {
+                cutoutPercentage: 0,
+                scales: {
+                  x: {
+                    display: false // Désactiver l'axe x
+                  },
+                  y: {
+                    display: false // Désactiver l'axe y
+                  }
+                }
+              }  
+            };
+            const ctxDoughnut = document.getElementById('myDoughnutChart').getContext('2d');
+            new Chart(ctxDoughnut, configDoughnut);
+          </script>
+        </div>
+        <div class="d-flex justify-content-between">
+          <p class="pl-3"><span class="font-weight-lighter text-muted">Petits_Dej</span> : <span class="text-info"><strong>{{montant_pdej_mois}}</strong> cfa</span></p>
+          <p class="pr-3"><span class="font-weight-lighter text-muted">Repas</span> : <span class="text-info"><strong>{{montant_dej_mois}}</strong> cfa</span></p>
+        </div>
+        <p class="pl-3"> Ce graphique présente la <span class="text-info">répartition mensuelle des achats</span> de divers tickets universitaires pour <span class="text-info">{{etudiant.first_name}} {{etudiant.last_name}}</span>.</p>
+      </div>
+    </div>
+  
+    <div class="col-lg-6 grid-margin stretch-card">
+      <div class="card ">
+        <div class="card-body">
+          <h4 class="card-title">Diagramme à barres (Année)</h4>
+          <p ><span class="font-weight-lighter text-muted">Montant total</span> : <span class="text-info"><strong>{{montant_annee}}</strong> cfa</span></p>
+          <div>
+            <canvas id="mySecondBarChart" height="650"width="700"></canvas>
+          </div>
+          
+          <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+          
+          <script>
+            const dataSecondBar = {
+              labels: ['Tickets_Petit_Dej', 'Tickets_Repas'],
+              datasets: [{
+                label: "Achetés dans l'année",
+                data: [{{ticket_pdej_achat_annee}},{{ticket_dej_achat_annee}}],
+                
+                backgroundColor: {{colors|safe}},
+                borderColor: {{colors|safe}},
+                borderWidth: 1
+  
+              }]
+            };
+          
+            const configSecondBar = {
+              type: 'bar',
+              data: dataSecondBar,
+              options: {
+                cutoutPercentage: 0,
+                scales: {
+                  y: {
+                    beginAtZero: true
+                  }
+                },
+                barPercentage:0.7,
+              }
+            };
+            const ctxSecondBar = document.getElementById('mySecondBarChart').getContext('2d');
+            new Chart(ctxSecondBar, configSecondBar);
+          </script>
+        </div>
+        <div class="d-flex justify-content-between">
+          <p class="pl-3"><span class="font-weight-lighter text-muted">Petits_Dej</span> : <span class="text-info"><strong>{{montant_pdej_annee}}</strong> cfa</span></p>
+          <p class="pr-3"><span class="font-weight-lighter text-muted">Repas</span> : <span class="text-info"><strong>{{montant_dej_annee}}</strong> cfa</span></p>
+        </div>
+        <p class="pl-3"> Cette représentation graphique met en lumière la <span class="text-info">répartition annuelle des achats</span> de différents tickets universitaires <span class="text-info">{{etudiant.first_name}} {{etudiant.last_name}}</span>.</p>
+      </div>
+    </div>
+  </div>
+
+<script>
+    // Sélectionnez tous les éléments de classe 'message'
+    const messages = document.querySelectorAll('.message');
+
+    // Masquer chaque message après 5 secondes
+    messages.forEach(message => {
+        setTimeout(() => {
+            message.style.display = 'none';
+        }, 5000);  // 5000 millisecondes = 5 secondes
+    });
+</script>
 
 {% endblock %}

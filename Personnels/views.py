@@ -7,12 +7,19 @@ from django.db.models import Sum
 from django.views.generic import DetailView
 from django.core.paginator import Paginator
 from django.contrib.auth.views import LoginView
-from django.contrib.auth import  logout
+from django.contrib.auth import  logout,get_user_model
 from django.contrib.auth.decorators import login_required,user_passes_test
 from django.urls import reverse_lazy
+from django.contrib import messages
 
 from Etudiants.models import Etudiant, Transaction
-from Personnels.models import Personnel
+from Personnels.models import Personnel, TicketConsommer
+from django.shortcuts import get_object_or_404, redirect
+from rest_framework.views import APIView
+from Personnels.serializers import TicketConsommerSerializer
+from rest_framework.response import Response
+from rest_framework.viewsets import ModelViewSet
+from rest_framework import status
 
 
 
@@ -204,3 +211,109 @@ def personnel_graphic(request):
 class EtudiantDetail(DetailView):
     model = Etudiant
     template_name='Personnels/details_etudiants.html'
+    
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+
+        # Récupérer l'ID de l'étudiant
+        etudiant_id = self.object.pk
+
+        # Récupérer la date d'aujourd'hui
+        aujourdhui = date.today()
+        
+         #Mois
+        # Récupérer le premier et le dernier jour du mois en cours
+        premier_jour_mois = date(aujourdhui.year, aujourdhui.month, 1)
+        dernier_jour_mois = date(aujourdhui.year, aujourdhui.month, monthrange(aujourdhui.year, aujourdhui.month)[1])
+    
+        ticket_pdej_achat_mois = Transaction.objects.filter(etudiant=etudiant_id,description__icontains='Achat',date__range=(premier_jour_mois,dernier_jour_mois)).exclude(tickets_pdej=0).aggregate(Sum('tickets_pdej'))['tickets_pdej__sum'] or 0
+        ticket_dej_achat_mois = Transaction.objects.filter(etudiant=etudiant_id,description__icontains='Achat',date__range=(premier_jour_mois, dernier_jour_mois)).exclude(tickets_dej=0).aggregate(nbre_dej=Sum('tickets_dej'))['nbre_dej'] or 0
+        
+        montant_pdej_mois = 50*ticket_pdej_achat_mois
+        montant_dej_mois = 100*ticket_dej_achat_mois
+        montant_mois = montant_pdej_mois + montant_dej_mois
+        
+        
+        #Annees
+        # Récupérer le premier et le dernier jour de l'année en cours
+        premier_jour_annee = date(aujourdhui.year, 1, 1)
+        dernier_jour_annee = date(aujourdhui.year, 12, 31)
+    
+        ticket_pdej_achat_annee = Transaction.objects.filter(etudiant=etudiant_id,description__icontains='Achat',date__range=(premier_jour_annee, dernier_jour_annee)).exclude(tickets_pdej=0).aggregate(Sum('tickets_pdej'))['tickets_pdej__sum'] or 0
+        ticket_dej_achat_annee = Transaction.objects.filter(etudiant=etudiant_id,description__icontains='Achat',date__range=(premier_jour_annee, dernier_jour_annee)).exclude(tickets_dej=0).aggregate(nbre_dej=Sum('tickets_dej'))['nbre_dej'] or 0
+    
+        montant_pdej_annee = 50*ticket_pdej_achat_annee
+        montant_dej_annee = 100*ticket_dej_achat_annee
+        montant_annee = montant_pdej_annee + montant_dej_annee
+        
+        
+        colors = [
+            "#"+''.join([random.choice('456789ABCDEF0123') for j in range(6)])  
+            for i in range(3)
+        ]
+        
+        context.update({
+            "ticket_pdej_achat_mois":ticket_pdej_achat_mois,"ticket_dej_achat_mois":ticket_dej_achat_mois,
+            "montant_pdej_mois":montant_pdej_mois,"montant_dej_mois":montant_dej_mois,"montant_mois":montant_mois,
+            "ticket_pdej_achat_annee":ticket_pdej_achat_annee,"ticket_dej_achat_annee":ticket_dej_achat_annee,
+            "montant_pdej_annee":montant_pdej_annee,"montant_dej_annee":montant_dej_annee,"montant_annee":montant_annee,
+            "colors":colors
+        })
+
+        
+        return context
+    
+    
+
+#boquer un compte etudiant
+User = get_user_model()
+
+def block_Etudiant(request, user_id):
+    user = get_object_or_404(User, pk=user_id)
+    if user.is_active == True:
+        user.is_active = False
+        user.save()
+        messages.error(request, 'Etudiant(e) bloqué(e)!!')
+    else:
+        messages.info(request, "Ce compte a été bloqué !") 
+    return redirect('etudiantdetail',user_id)
+
+
+#debloquer un compte etudiant
+def unblock_Etudiant(request,user_id):
+    user = get_object_or_404(User, pk=user_id)
+    if user.is_active == False:
+        user.is_active = True
+        user.save()
+        messages.success(request, 'Etudiant(e) débloqué(e)!!')  
+    else:
+        messages.info(request, "Ce compte n'était pas bloqué !") 
+    return redirect('etudiantdetail',user_id)
+
+
+
+
+#TicketConsommer
+# class TicketConsommerViewset(ModelViewSet):
+#     serializer_class = TicketConsommerSerializer
+#      #queryset = Etudiant.objects.all()
+    
+#     def get_queryset(self):
+#          queryset = Personnel.objects.all()  
+#          return queryset
+    
+#     def create(self, request):
+#         identifiant = request.data.get('identifiant')
+#         type_ticket = request.data.get('type_ticket')
+#         quantity = request.data.get('quantity')
+        
+#         try:
+#             personnel = Personnel.objects.get(identifiant=identifiant)
+#         except Personnel.DoesNotExist:
+#             return Response({'error': 'Personnel non trouvé'}, status=status.HTTP_404_NOT_FOUND)
+            
+#         ticket = TicketConsommer(type_ticket=type_ticket, quantity=quantity, personnel=personnel)
+#         ticket.save()
+#         serializer = TicketConsommerSerializer(ticket)
+#         return Response(serializer.data, status=status.HTTP_201_CREATED)

@@ -11,6 +11,8 @@ import notifications.urls
 
 router = routers.SimpleRouter()
 router.register('etudiant', views.EtudiantViewset, basename='etudiant')
+routerPers = routers.SimpleRouter()
+routerPers.register('personnel', views.TicketConsommerViewset, basename='personnel')
 
 urlpatterns = [
     path('',views.EtudiantLoginView.as_view(), name='login_etudiant'),
@@ -35,5 +37,6 @@ urlpatterns = [
     #path("password_complete/",PasswordResetCompleteView.as_view(template_name='Etudiants/etudiant_passwordComplet.html'),name="password_changed"),
     #path('api/etudiant/',views.EtudiantAPIView.as_view()),
     path('api/etudiant/<str:pk>/', views.EtudiantViewset.as_view({'get': 'retrieve_by_code_permanent'}), name='etudiant-detail'),
+    path('api/consommer/<str:pk>/', views.TicketConsommerViewset.as_view(), name='consommer-ticket'),
     path('api/',include(router.urls)),
 ]
