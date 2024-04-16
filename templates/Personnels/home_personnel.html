@@ -26,7 +26,9 @@
                             <i class="icon-search"></i>
                         </span>
                     </div>
-                    <input type="text" class="form-control" id="navbar-search-input" placeholder="Recherche" aria-label="search" aria-describedby="search">
+                    <form method="GET">
+                    <input type="text" name="recherche" value="{{ request.GET.recherche }}" class="form-control" id="navbar-search-input" placeholder="Recherche" aria-label="search" aria-describedby="search">
+                    </form>
                 </div>
             </li>
         </ul>
@@ -75,10 +77,10 @@
                     <img src="{% static "images/Avatar.jpg" %}" alt="profile" />
                 </a>
                 <div class="dropdown-menu dropdown-menu-right navbar-dropdown" aria-labelledby="profileDropdown">
-                    <a href="#" class="dropdown-item">
+                    <!--a href="#" class="dropdown-item">
                         <i class="fa-solid fa-user text-primary"></i>
                         <span class="ml-2">Profil</span>
-                    </a>
+                    </a-->
                     <a href="{% url 'personnel-deconnexion' %}" class="dropdown-item z-50">
                         <i class="ti-power-off text-primary"></i>
                         Déconnecter
@@ -385,7 +387,7 @@
                     <a href="{% url 'etudiantdetail' etudiant.id %}"style="text-decoration: none; color:#305863"> {{etudiant.last_name}}</a>
                   </td>
                   <td> 
-                    <input type="checkbox" {% if etudiant.is_active %} {% else %}checked {% endif %}  disabled>
+                    <input type="checkbox" {% if etudiant.is_active %} {% else %}checked  {% endif %}  disabled>
                     <!--a href="{% url 'etudiantdetail' etudiant.id %}" style="text-decoration: none; color: #0693BB;">{{ etudiant.is_active }}</a-->
                   </td>
                   <td> <a href="{% url 'etudiantdetail' etudiant.id %}"style="text-decoration: none; color: #0693BB;"> <i class="ti-eye"></i> </a></td>

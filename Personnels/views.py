@@ -97,20 +97,25 @@ def home_personnel(request):
     dernier_jour_annee = date(aujourdhui.year, 12, 31)
 
     # Récupérer les quantités de tickets consommés pendant toute l'année pour chaque type de ticket
-    tickets_pdej_of_year = personnel.tickets.filter(type_ticket='pdej', date__range=(premier_jour_annee, dernier_jour_annee)).aggregate(Sum('quantity'))['quantity__sum']
-    tickets_dej_of_year = personnel.tickets.filter(type_ticket='dej', date__range=(premier_jour_annee, dernier_jour_annee)).aggregate(Sum('quantity'))['quantity__sum']
-    tickets_diner_of_year = personnel.tickets.filter(type_ticket='dinner', date__range=(premier_jour_annee, dernier_jour_annee)).aggregate(Sum('quantity'))['quantity__sum']
+    tickets_pdej_of_year = personnel.tickets.filter(type_ticket='pdej', date__range=(premier_jour_annee, dernier_jour_annee)).aggregate(Sum('quantity'))['quantity__sum'] or 0
+    tickets_dej_of_year = personnel.tickets.filter(type_ticket='dej', date__range=(premier_jour_annee, dernier_jour_annee)).aggregate(Sum('quantity'))['quantity__sum'] or 0
+    tickets_diner_of_year = personnel.tickets.filter(type_ticket='dinner', date__range=(premier_jour_annee, dernier_jour_annee)).aggregate(Sum('quantity'))['quantity__sum'] or 0
 
     # Calculer le montant total des tickets consommés pendant l'année
-    montant_total_year = (50 * tickets_pdej_of_year) + (100 * tickets_dej_of_year) + (100 * tickets_diner_of_year) 
+    montant_total_year = (50*tickets_pdej_of_year) + (100*tickets_dej_of_year) + (100*tickets_diner_of_year) 
    
     
     #liste Etudiant
-    etudiants = Etudiant.objects.all().order_by('identifiant')
+    etudiants = Etudiant.objects.all().order_by('-identifiant')
+     
+    if request.method == "GET":
+        searched = request.GET.get('recherche')
+        if searched is not None:
+            etudiants= Etudiant.objects.filter(identifiant__contains=searched).order_by('-identifiant')
+            
     p=Paginator( etudiants,10)
     page=request.GET.get('page')
     liste=p.get_page(page)
-    
     
 
     colors = [
@@ -125,8 +130,8 @@ def home_personnel(request):
                  int(tickets_pdej_of_week),"tickets_dej_of_week":int(tickets_dej_of_week ),
                  "tickets_diner_of_week":int(tickets_diner_of_week ),"ticket_pdej_month":int(tickets_pdej_of_currentmonth),
                  "ticket_dej_month":int(tickets_dej_of_currentmonth),"ticket_diner_month":int(tickets_diner_of_currentmonth),
-                 "liste":liste,"tickets_pdej_of_year":tickets_pdej_of_year,"tickets_dej_of_year":tickets_dej_of_year,
-                 "tickets_diner_of_year":tickets_diner_of_year,"montant_total_year":montant_total_year,
+                 "liste":liste,"tickets_pdej_of_year":int(tickets_pdej_of_year),"tickets_dej_of_year":int(tickets_dej_of_year),
+                 "tickets_diner_of_year":int(tickets_diner_of_year),"montant_total_year":montant_total_year,
                 }
     return render(request,'Personnels/home_personnel.html',context)
 
