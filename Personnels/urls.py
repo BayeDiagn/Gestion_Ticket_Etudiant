@@ -12,7 +12,7 @@ from rest_framework import routers
 # router.register('personnel', views.TicketConsommerViewset, basename='personnel')
 
 urlpatterns = [
-    path('',views.Personnel_loginView.as_view(),name='personnel-login'),
+    # path('',views.Personnel_loginView.as_view(),name='personnel-login'),
     path('personnel_accueil/',views.home_personnel,name='personnel-home'),
     path('<int:pk>/etudiantdetail/',views.EtudiantDetail.as_view(),name='etudiantdetail'),
     path('vente/',views.personnel_graphic,name='vente'), 

@@ -12,3 +12,6 @@ PAYDUNYA_ACCESS_TOKENS = {
   'PAYDUNYA-PRIVATE-KEY': "",
   'PAYDUNYA-TOKEN': ""
 }
+
+api_key = ''
+api_secret = ''

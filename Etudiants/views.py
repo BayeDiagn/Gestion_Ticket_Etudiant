@@ -9,6 +9,7 @@ from Etudiants.models import Etudiant, Transaction
 
 from rest_framework.views import APIView
 from Etudiants.serializers import EtudiantSerializer
+from Etudiants.utils import PayTech
 from Personnels.serializers import PersonnelSerializer, TicketConsommerSerializer
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
@@ -17,7 +18,8 @@ from rest_framework import status
 from django.contrib.auth.views import LoginView,PasswordChangeView,PasswordResetCompleteView,PasswordResetView,PasswordResetDoneView
 from django.views.generic import DetailView,CreateView
 from django.contrib.auth.decorators import login_required,user_passes_test
-from django.contrib.auth import  logout, update_session_auth_hash
+from django.contrib.auth import  logout, update_session_auth_hash, get_user_model
+
 
 from Personnels.models import Personnel, TicketConsommer
 from Tickets.models import Ticket_Dej, Ticket_Repas
@@ -32,20 +34,21 @@ from django.shortcuts import HttpResponse
 import paydunya
 from paydunya import InvoiceItem, Store,Invoice
 
-from Gestion_Tickets.settings import PAYDUNYA_ACCESS_TOKENS, SESSION_EXPIRE_AFTER_INACTIVITY
+from Gestion_Tickets.settings import PAYDUNYA_ACCESS_TOKENS, SESSION_EXPIRE_AFTER_INACTIVITY,api_key,api_secret
+import uuid
 
 
 
 
 
 # Activer le mode 'test'. Le debug est à False par défaut
-paydunya.debug = True
+# paydunya.debug = True
 
 # Configurer les clés d'API
-paydunya.api_keys = PAYDUNYA_ACCESS_TOKENS
+# paydunya.api_keys = PAYDUNYA_ACCESS_TOKENS
 
 # Configuration des informations de votre service/entreprise
-store = Store(name='Uadb Gestion_Ticket')
+# store = Store(name='Uadb Gestion_Ticket')
 
 
 
@@ -83,24 +86,21 @@ def etudiant_home(request):
     notifications = Notification.objects.filter(recipient=request.user, unread=True)
     nbre = notifications.count()
 
-    #paiement avec paydunya
+    #print(str(uuid.uuid4()))
+    
+    #paiement avec paytech
     if request.method == 'POST':
         petits_dej = request.POST.get('pdej')
         dejeuners = request.POST.get('dej')
         
-        
-        name = 'ticket'
-        prix_unit = 150
-
+        item_name = 'ticket'
         
         if not petits_dej:
             petits_dej = '0'
-            name='ticket_repas'
-            prix_unit=100
+            item_name='ticket repas'
         if not dejeuners:
             dejeuners = '0'
-            name='ticket_petit_dej'
-            prix_unit=50
+            item_name='ticket petit dej'
         
         
         try:
@@ -114,39 +114,43 @@ def etudiant_home(request):
         request.session['petits_dej'] = petits_dej
         request.session['dejeuners'] = dejeuners
             
-        qunt = petits_dej + dejeuners
-        prix_total = (petits_dej*50) + (dejeuners*100)
+        item_price = (petits_dej*50) + (dejeuners*100)
         
-        if prix_total == 50 or prix_total == 100 :
-            prix_total = prix_total + (200 - prix_total)
-        if prix_total == 150 :
-            prix_total = 200
+        if item_price == 50 or item_price == 100 :
+            item_price = item_price + (100 - item_price)
         
         
+        # Instanciation de la classe PayTech
+        pay_tech = PayTech(api_key, api_secret)
         
-        items = [
-            InvoiceItem(
-                name=name,
-                quantity=qunt,
-                unit_price=str(prix_unit),
-                total_price=str(prix_total),
-                description=name
-         ),]
+        # Configuration des paramètres de la requête de paiement
+        pay_tech.setQuery({
+            'item_name': item_name,
+            'item_price': item_price,
+            'command_name': f"Paiement {item_name} etudiant via PayTech"
+        })
+        pay_tech.setTestMode(True)
+        pay_tech.setCurrency('XOF')
+        pay_tech.setRefCommand(str(uuid.uuid4()))
+        pay_tech.setNotificationUrl({
+            'ipn_url': 'https://192.168.1.10:8000/ipn',
+            'success_url': 'https://192.168.1.10:8000/payment-done/',
+            'cancel_url': 'https://192.168.1.10:8000/accueil/'
+        })
+        pay_tech.setMobile(False)
         
-        invoice = paydunya.Invoice(store)
+        # Envoi de la requête de paiement
+        response = pay_tech.send()
+
+        if response['success'] == 1:
+            redirect_url = response['redirect_url']
+            return redirect(redirect_url)
+        else:
+            error_message = ', '.join(response['errors'])
+            # print(error_message)
+            # messages.error(request, error_message)
+            # form.add_error(None, error_message)
         
-        # invoice.return_url = "http://192.168.1.41:8000/payment-done/"
-        # invoice.cancel_url = "http://192.168.1.41:8000/payment-canceled/"
-        invoice.return_url = "http://localhost:8000/payment-done/"
-        invoice.cancel_url = "http://localhost:8000/payment-canceled/"
-        
-        invoice.add_items(items)
-        
-        
-        successful, response = invoice.create()
-        #print(response)
-        if successful:
-            return redirect(response.get('response_text'))
      
     currentTransactions = Transaction.objects.filter(Q(etudiant=request.user.id) & (Q(description__icontains='Achat') | Q(description__icontains='Envoi'))).order_by('-id')
     currentTransactions = currentTransactions[0:3]
@@ -157,46 +161,39 @@ def etudiant_home(request):
     return render(request,'Etudiants/etudiant_home.html',context)
 
 
-
-
 #Redirection apres succes du paiement
 @etudiant_required
 @login_required
 def payment_done(request):
-    token = request.GET.get('token')
-    invoice = Invoice(store)
-    successful, response = invoice.confirm(token)
     petits_dej = request.session.get('petits_dej')
     dejeuners = request.session.get('dejeuners')
-    if successful:
-        etudiant = Etudiant.objects.get(identifiant=request.user.identifiant)
-        # etudiant.incrementer_ticket_dej(petits_dej)
-        # etudiant.incrementer_ticket_repas(dejeuners)
-        
-        if dejeuners == 0 :
-            pdej = Ticket_Dej(nbre_tickets_dej=petits_dej,etudiant=etudiant)
-            pdej.save()
-            notify.send(request.user, recipient=request.user, verb=f'Vous avez acheté {petits_dej} ticket(s) de petit-déjeuner')
-            transaction = Transaction(description=f"Achat de {petits_dej} ticket(s) Petit-déjeuner.",tickets_pdej=petits_dej, etudiant=etudiant)
-            transaction.save()
-        elif petits_dej == 0 :
-            dej = Ticket_Repas(nbre_tickets_repas=dejeuners,etudiant=etudiant)
-            dej.save()
-            notify.send(request.user, recipient=request.user, verb=f'Vous avez acheté {dejeuners} ticket(s) déjeuner')
-            transaction = Transaction(description=f"Achat de {dejeuners} ticket(s) Déjeuner.",tickets_dej=dejeuners, etudiant=etudiant)
-            transaction.save()
-        else : 
-            pdej = Ticket_Dej(nbre_tickets_dej=petits_dej,etudiant=etudiant)
-            pdej.save()
-            dej = Ticket_Repas(nbre_tickets_repas=dejeuners,etudiant=etudiant)
-            dej.save()
-            notify.send(request.user, recipient=request.user, verb=f'Vous avez acheté {petits_dej} ticket(s) de petit-déjeuner',description=f'Et {dejeuners} ticket(s) déjeuner')
-            transaction = Transaction(description=f"Achat de {petits_dej} ticket(s) Petit-déjeuner et {dejeuners} ticket(s) Déjeuner.",tickets_pdej=petits_dej,tickets_dej=dejeuners, etudiant=etudiant)
-            transaction.save()
+    
+    etudiant = Etudiant.objects.get(identifiant=request.user.identifiant)
+    
+    if dejeuners == 0 :
+        pdej = Ticket_Dej(nbre_tickets_dej=petits_dej,etudiant=etudiant)
+        pdej.save()
+        notify.send(request.user, recipient=request.user, verb=f'Vous avez acheté {petits_dej} ticket(s) de petit-déj')
+        transaction = Transaction(description=f"Achat de {petits_dej} ticket(s) Petit-déjeuner.",tickets_pdej=petits_dej, etudiant=etudiant)
+        transaction.save()
+    elif petits_dej == 0 :
+        dej = Ticket_Repas(nbre_tickets_repas=dejeuners,etudiant=etudiant)
+        dej.save()
+        notify.send(request.user, recipient=request.user, verb=f'Vous avez acheté {dejeuners} ticket(s) déjeuner')
+        transaction = Transaction(description=f"Achat de {dejeuners} ticket(s) Déjeuner.",tickets_dej=dejeuners, etudiant=etudiant)
+        transaction.save()
+    else : 
+        pdej = Ticket_Dej(nbre_tickets_dej=petits_dej,etudiant=etudiant)
+        pdej.save()
+        dej = Ticket_Repas(nbre_tickets_repas=dejeuners,etudiant=etudiant)
+        dej.save()
+        notify.send(request.user, recipient=request.user, verb=f'Vous avez acheté {dejeuners} ticket(s) déjeuner',description=f'Et {petits_dej} ticket(s) petit-déjeuner')
+        transaction = Transaction(description=f"Achat de {petits_dej} ticket(s) Petit-déjeuner et {dejeuners} ticket(s) Déjeuner.",tickets_pdej=petits_dej,tickets_dej=dejeuners, etudiant=etudiant)
+        transaction.save()
 
-        return redirect('home_etudiant')
-  
-  
+    return redirect('home_etudiant')
+    
+      
   
 #Annulation du paiement   
 @etudiant_required
@@ -222,7 +219,12 @@ class EtudiantLoginView(LoginView):
     template_name = "Etudiants/etudiant_login.html"
     
     def get_success_url(self):
-        return reverse_lazy('home_etudiant')
+        #user = get_user_model()
+        user = self.request.user
+        if user.is_etudiant:
+            return reverse_lazy('home_etudiant')
+        else:
+            return reverse_lazy('personnel-home')
 
 
 
@@ -325,11 +327,11 @@ def sendTicket(request):
                         etudiantreceive.incrementer_ticket_dej(nbreticket)
                         etudiantsend.decrementer_ticket_dej(nbreticket)
                         nbreticket = int(nbreticket)
-                        messages.success(request, f'{int(nbreticket)} Ticket(s) Petit-déjeuner envoyé(s) à {etudiantreceive.first_name} {etudiantreceive.last_name} ({etudiantreceive.identifiant}).')
-                        notify.send(request.user, recipient=etudiantreceive, verb=f'Vous avez reçu {nbreticket} ticket(s) de petit-déjeuner', description=f'De la part de {etudiantsend.first_name} {etudiantsend.last_name}')
+                        messages.success(request, f'{int(nbreticket)} Ticket(s) Petit-déjeuner envoyé(s) à {etudiantreceive.first_name} {etudiantreceive.last_name}.')
+                        notify.send(request.user, recipient=etudiantreceive, verb=f'Vous avez reçu {nbreticket} ticket(s) de petit-déj', description=f'De la part de {etudiantsend.first_name} {etudiantsend.last_name}')
                         transactionsender = Transaction(description=f"Envoi de {nbreticket} ticket(s) Petit-déjeuner à {etudiantreceive.first_name} {etudiantreceive.last_name}.", etudiant=etudiantsend)
                         transactionsender.save()
-                        transactionreceiver = Transaction(description=f"Reception de {nbreticket} ticket(s) Petit-déjeuner offert(s) par {etudiantsend.first_name} {etudiantsend.last_name}.", etudiant=etudiantreceive)
+                        transactionreceiver = Transaction(description=f"Reception de {nbreticket} ticket(s) Petit-déj offert(s) par {etudiantsend.first_name} {etudiantsend.last_name}.", etudiant=etudiantreceive)
                         transactionreceiver.save()
                         return redirect('sendticket')
                     else:
@@ -347,7 +349,7 @@ def sendTicket(request):
                         etudiantreceive.incrementer_ticket_repas(nbreticket)
                         etudiantsend.decrementer_ticket_repas(nbreticket)
                         nbreticket = int(nbreticket)
-                        messages.success(request, f'{int(nbreticket)} Ticket(s) Déjeuner envoyé(s) {etudiantreceive.first_name} {etudiantreceive.last_name} ({etudiantreceive.identifiant}).')
+                        messages.success(request, f'{int(nbreticket)} Ticket(s) Déjeuner envoyé(s) {etudiantreceive.first_name} {etudiantreceive.last_name}.')
                         notify.send(request.user, recipient=etudiantreceive, verb=f'Vous avez reçu {nbreticket} ticket(s) de déjeuner', description=f'De la part de {etudiantsend.first_name} {etudiantsend.last_name}')
                         transactionsender = Transaction(description=f"Envoi de {nbreticket} ticket(s) Déjeuner à {etudiantreceive.first_name} {etudiantreceive.last_name}.", etudiant=etudiantsend)
                         transactionsender.save()
@@ -443,7 +445,7 @@ class EtudiantViewset(ModelViewSet):
                 nbre_tickets_repas_max = max(ticket.nbre_tickets_repas for ticket in ticketRepas)
                 if nbre_tickets_repas_max > 0:
                     etudiant.decrementer_ticket_repas(1)
-                    #transaction = Transaction(description=f"Consommation d'un ticket déjeuner.", etudiant=etudiant)
+                    #transaction = Transaction(description=f"Consommation d'un ticket diner.", etudiant=etudiant)
                     #transaction.save()
                     return Response({"message": "Decrementation reussie!!","typeofticket":"dinner"})
                 else:

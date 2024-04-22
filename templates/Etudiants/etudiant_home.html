@@ -119,10 +119,22 @@
                             {% for currentTransaction in currentTransactions %}
                             <a class="dropdown-item" href="{% url 'transaction_etudiant' %}">{{currentTransaction.description}}</a>
                             {% endfor %}
-                        </div>
+                        </div>  
                     </div>
-                </div>
+                </div>         
             </div>
+            {% comment %} {% if messages %}
+            <div class="col-12 col-xl-4">
+                {% for message in messages %}
+                    {% if message.tags == 'error' %}
+                        <div class="alert alert-danger border-0 rounded  message" role="alert">
+                            {{ message.0 }}
+                        </div>
+                        {% break %}
+                    {% endif %}
+                {% endfor %}    
+            </div>
+            {% endif %}  {% endcomment %}
         </div>
     </div>
 </div>

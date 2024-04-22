@@ -31,25 +31,25 @@ from rest_framework import status
 
 
 #Personnel Login
-class Personnel_loginView(LoginView):
-    template_name = "Personnels/personnel_login.html"
+# class Personnel_loginView(LoginView):
+#     template_name = "Personnels/personnel_login.html"
     
-    def get_success_url(self):
-        return reverse_lazy('personnel-home')
+#     def get_success_url(self):
+#         return reverse_lazy('personnel-home')
     
     
 #Personnel deconnexion
 def personnel_deconnected(request):
     logout(request)
     
-    return redirect("personnel-login")
+    return redirect("login_etudiant")
 
 
 #Decorator pour Personnel
 def personnel_required(view_func):
     decorated_view_func = user_passes_test(
         lambda user: user.is_authenticated and user.is_personnel,
-        login_url='personnel-login'
+        login_url='login_etudiant'
     )(view_func)
     return decorated_view_func
 
@@ -122,6 +122,22 @@ def home_personnel(request):
         "#"+''.join([random.choice('0123456789ABCDEF') for j in range(6)])  
         for i in range(3)
     ]
+    
+    # Définissez la date d'il y a 3 jours
+    # date_3_days_ago = timezone.now() - timedelta(days=3)
+
+    # Recherchez les étudiants ayant consommé un ticket dans les 3 derniers jours
+    # etudiants_consommes_recent = Transaction.objects.filter(
+    #     description__icontains='Consommation',
+    #     date__gte=date_3_days_ago
+    # ).values_list('etudiant', flat=True)
+
+    # Recherchez tous les étudiants
+    # tous_les_etudiants = Etudiant.objects.all()
+
+    # Excluez les étudiants ayant consommé un ticket dans les 3 derniers jours
+    # etudiants_non_consommes_recent = tous_les_etudiants.exclude(id__in=etudiants_consommes_recent)
+    # print(etudiants_non_consommes_recent)
 
     
     context = {"nbreTPD":int(tickets_pdej_consommes_aujourd_hui),"nbreTRP":int(tickets_dej_consommes_aujourd_hui),
