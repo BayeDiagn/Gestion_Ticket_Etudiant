@@ -23,6 +23,7 @@ urlpatterns = [
     path('<int:pk>/detail_etudiant/',views.EtudiantDetailView.as_view(), name='detail_etudiant'),
     path('transaction/',views.etudiant_transaction, name='transaction_etudiant'),
     path('<int:pk>/changepassword/',views.EtudiantPasswordChangeView.as_view(), name='passwordchanged_etudiant'),
+    path('<int:pk>/change_qrcode/',views.changeQrCode, name='etudiant_change_qrcode'),
     
     path("etudiant_resetpassword/",views.MyPasswordRestView.as_view(),name="password_reset"),
     path("etudiant_mailSend/",views.MyPasswordResetDoneView.as_view(),name="password_reset_done"),

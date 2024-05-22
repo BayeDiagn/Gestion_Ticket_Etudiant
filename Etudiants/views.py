@@ -12,7 +12,7 @@ from Etudiants.serializers import EtudiantSerializer
 from Etudiants.utils import PayTech
 from Personnels.serializers import PersonnelSerializer, TicketConsommerSerializer
 from rest_framework.response import Response
-from rest_framework.viewsets import ModelViewSet
+from rest_framework.viewsets import ModelViewSet,ReadOnlyModelViewSet
 from rest_framework.decorators import action
 from rest_framework import status
 from django.contrib.auth.views import LoginView,PasswordChangeView,PasswordResetCompleteView,PasswordResetView,PasswordResetDoneView
@@ -61,7 +61,7 @@ import uuid
 #decorateur controlant l'acces a la page accueil
 def etudiant_required(view_func):
     decorated_view_func = user_passes_test(
-        lambda user: user.is_authenticated and user.is_etudiant,
+        lambda user: (user.is_authenticated and user.is_etudiant) or (user.is_authenticated and user.is_boutiquier),
         login_url='login_etudiant'
     )(view_func)
     return decorated_view_func
@@ -72,8 +72,8 @@ def etudiant_required(view_func):
 @etudiant_required
 @login_required
 def etudiant_home(request):
-    # request.session.set_expiry(SESSION_EXPIRE_AFTER_INACTIVITY)  # Après 30 minutes d'inactivité, la session de l'utilisateur expirera, et il devra se reconnecter.
-    # update_session_auth_hash(request, request.user)  # Mettre à jour le hachage d'authentification de session
+    request.session.set_expiry(SESSION_EXPIRE_AFTER_INACTIVITY)  # Après 30 minutes d'inactivité, la session de l'utilisateur expirera, et il devra se reconnecter.
+    update_session_auth_hash(request, request.user)  # Mettre à jour le hachage d'authentification de session
     
     etudiant = Etudiant.objects.get(id=request.user.id)
     
@@ -133,9 +133,9 @@ def etudiant_home(request):
         pay_tech.setCurrency('XOF')
         pay_tech.setRefCommand(str(uuid.uuid4()))
         pay_tech.setNotificationUrl({
-            'ipn_url': 'https://192.168.1.10:8000/ipn',
-            'success_url': 'https://192.168.1.10:8000/payment-done/',
-            'cancel_url': 'https://192.168.1.10:8000/accueil/'
+            'ipn_url': 'https://192.168.1.49:8000/ipn',
+            'success_url': 'https://192.168.1.49:8000/payment-done/',
+            'cancel_url': 'https://192.168.1.49:8000/accueil/',
         })
         pay_tech.setMobile(False)
         
@@ -167,29 +167,42 @@ def etudiant_home(request):
 def payment_done(request):
     petits_dej = request.session.get('petits_dej')
     dejeuners = request.session.get('dejeuners')
-    
     etudiant = Etudiant.objects.get(identifiant=request.user.identifiant)
     
-    if dejeuners == 0 :
-        pdej = Ticket_Dej(nbre_tickets_dej=petits_dej,etudiant=etudiant)
-        pdej.save()
-        notify.send(request.user, recipient=request.user, verb=f'Vous avez acheté {petits_dej} ticket(s) de petit-déj')
-        transaction = Transaction(description=f"Achat de {petits_dej} ticket(s) Petit-déjeuner.",tickets_pdej=petits_dej, etudiant=etudiant)
-        transaction.save()
-    elif petits_dej == 0 :
-        dej = Ticket_Repas(nbre_tickets_repas=dejeuners,etudiant=etudiant)
-        dej.save()
-        notify.send(request.user, recipient=request.user, verb=f'Vous avez acheté {dejeuners} ticket(s) déjeuner')
-        transaction = Transaction(description=f"Achat de {dejeuners} ticket(s) Déjeuner.",tickets_dej=dejeuners, etudiant=etudiant)
-        transaction.save()
-    else : 
-        pdej = Ticket_Dej(nbre_tickets_dej=petits_dej,etudiant=etudiant)
-        pdej.save()
-        dej = Ticket_Repas(nbre_tickets_repas=dejeuners,etudiant=etudiant)
-        dej.save()
-        notify.send(request.user, recipient=request.user, verb=f'Vous avez acheté {dejeuners} ticket(s) déjeuner',description=f'Et {petits_dej} ticket(s) petit-déjeuner')
-        transaction = Transaction(description=f"Achat de {petits_dej} ticket(s) Petit-déjeuner et {dejeuners} ticket(s) Déjeuner.",tickets_pdej=petits_dej,tickets_dej=dejeuners, etudiant=etudiant)
-        transaction.save()
+    if petits_dej is None and dejeuners is None:
+        # Aucun ticket à créer
+        del request.session['petits_dej']
+        del request.session['dejeuners']
+        return redirect('home_etudiant')
+
+    if dejeuners == 0 or dejeuners is None:
+        if petits_dej is not None:
+            pdej = Ticket_Dej(nbre_tickets_dej=petits_dej, etudiant=etudiant)
+            pdej.save()
+            notify.send(request.user, recipient=request.user, verb=f'Vous avez acheté {petits_dej} ticket(s) de petit-déj')
+            transaction = Transaction(description=f"Achat de {petits_dej} ticket(s) Petit-déj.", tickets_pdej=petits_dej, etudiant=etudiant)
+            transaction.save()
+
+    elif petits_dej == 0 or petits_dej is None:
+        if dejeuners is not None:
+            dej = Ticket_Repas(nbre_tickets_repas=dejeuners, etudiant=etudiant)
+            dej.save()
+            notify.send(request.user, recipient=request.user, verb=f'Vous avez acheté {dejeuners} ticket(s) déjeuner')
+            transaction = Transaction(description=f"Achat de {dejeuners} ticket(s) Déjeuner.", tickets_dej=dejeuners, etudiant=etudiant)
+            transaction.save()
+
+    else:
+        if petits_dej is not None and dejeuners is not None:
+            pdej = Ticket_Dej(nbre_tickets_dej=petits_dej, etudiant=etudiant)
+            pdej.save()
+            dej = Ticket_Repas(nbre_tickets_repas=dejeuners, etudiant=etudiant)
+            dej.save()
+            notify.send(request.user, recipient=request.user, verb=f'Vous avez acheté {dejeuners} ticket(s) déjeuner', description=f'Et {petits_dej} ticket(s) petit-déjeuner')
+            transaction = Transaction(description=f"Achat de {petits_dej} ticket(s) Petit-déj et {dejeuners} ticket(s) Déjeuner.", tickets_pdej=petits_dej, tickets_dej=dejeuners, etudiant=etudiant)
+            transaction.save()
+
+    del request.session['petits_dej']
+    del request.session['dejeuners']
 
     return redirect('home_etudiant')
     
@@ -221,7 +234,7 @@ class EtudiantLoginView(LoginView):
     def get_success_url(self):
         #user = get_user_model()
         user = self.request.user
-        if user.is_etudiant:
+        if user.is_etudiant or user.is_boutiquier:
             return reverse_lazy('home_etudiant')
         else:
             return reverse_lazy('personnel-home')
@@ -299,8 +312,9 @@ class MyPasswordResetDoneView(PasswordResetDoneView):
     
 @etudiant_required
 @login_required
+@transaction.atomic
 def sendTicket(request):
-    
+
     form = SendTicketForm()
     if request.method == 'POST':
         form = SendTicketForm(data=request.POST)
@@ -311,29 +325,43 @@ def sendTicket(request):
             
             etudiantsend = get_object_or_404(Etudiant, identifiant=request.user.identifiant)
             
+            #Verifier si l'utilisateur est un boutiquier
+            if etudiantsend.is_boutiquier:
+                messages.error(request, "Vous n'êtes pas autorisé à effectuer cette opération!!")
+                # return render(request, 'Etudiants/send_ticket.html', {'form': form}) ou
+                return redirect('sendticket')
+            
             try:
                 etudiantreceive = Etudiant.objects.get(identifiant=code_permenant)
             except Etudiant.DoesNotExist:
                 messages.error(request, 'L\'étudiant récepteur n\'existe pas')
-                return render(request, 'Etudiants/send_ticket.html', {'form': form})
+                return redirect('sendticket')
             
              
             if ticket_type == 'dej':
                 try:
                     tickets_dej_etudiant_sender = Ticket_Dej.objects.filter(etudiant=etudiantsend)
-                    nbre_tickets_dej_max = max(ticket.nbre_tickets_dej for ticket in tickets_dej_etudiant_sender)
+                    nbre_tickets_dej_max = max((ticket.nbre_tickets_dej for ticket in tickets_dej_etudiant_sender), default=0)
                     
                     if nbreticket <= nbre_tickets_dej_max:
-                        etudiantreceive.incrementer_ticket_dej(nbreticket)
-                        etudiantsend.decrementer_ticket_dej(nbreticket)
-                        nbreticket = int(nbreticket)
-                        messages.success(request, f'{int(nbreticket)} Ticket(s) Petit-déjeuner envoyé(s) à {etudiantreceive.first_name} {etudiantreceive.last_name}.')
-                        notify.send(request.user, recipient=etudiantreceive, verb=f'Vous avez reçu {nbreticket} ticket(s) de petit-déj', description=f'De la part de {etudiantsend.first_name} {etudiantsend.last_name}')
-                        transactionsender = Transaction(description=f"Envoi de {nbreticket} ticket(s) Petit-déjeuner à {etudiantreceive.first_name} {etudiantreceive.last_name}.", etudiant=etudiantsend)
-                        transactionsender.save()
-                        transactionreceiver = Transaction(description=f"Reception de {nbreticket} ticket(s) Petit-déj offert(s) par {etudiantsend.first_name} {etudiantsend.last_name}.", etudiant=etudiantreceive)
-                        transactionreceiver.save()
-                        return redirect('sendticket')
+                        if nbreticket >0 :
+                            pdej = Ticket_Dej(nbre_tickets_dej=nbreticket, etudiant=etudiantreceive)
+                            pdej.save()
+                            etudiantsend.decrementer_ticket_dej(nbreticket)
+                            nbreticket = int(nbreticket)
+                            messages.success(request, f'{int(nbreticket)} Ticket(s) Petit-déjeuner envoyé(s) à {etudiantreceive.first_name} {etudiantreceive.last_name}.')
+                            notify.send(request.user, recipient=etudiantreceive, verb=f'Vous avez reçu {nbreticket} ticket(s) de petit-déj', description=f'De la part de {etudiantsend.first_name} {etudiantsend.last_name}')
+                            transactionsender = Transaction(description=f"Envoi de {nbreticket} ticket(s) Petit-déjeuner à {etudiantreceive.first_name} {etudiantreceive.last_name}.", etudiant=etudiantsend)
+                            transactionsender.save()
+                            transactionreceiver = Transaction(description=f"Reception de {nbreticket} ticket(s) Petit-déj offert(s) par {etudiantsend.first_name} {etudiantsend.last_name}.", etudiant=etudiantreceive)
+                            transactionreceiver.save()
+                            return redirect('sendticket')
+                        elif nbreticket ==0 :
+                            messages.error(request, 'Le nombre de tickets doit supérieur à zéro(0)!!')
+                        # else :
+                        #     messages.error(request, 'Nombre de tickets incorrect!!')
+                    elif nbre_tickets_dej_max ==0 :
+                            messages.error(request, 'Nombre de tickets Petit-Déjeuner insuffisant!!')
                     else:
                         messages.error(request, f'Vous ne pouvez pas envoyer plus de {nbre_tickets_dej_max} tickets petit-dej!!')
                 except Ticket_Dej.DoesNotExist:
@@ -344,25 +372,34 @@ def sendTicket(request):
             if ticket_type == 'repas':
                 try:
                     tickets_repas_etudiant_sender = Ticket_Repas.objects.filter(etudiant=etudiantsend)
-                    nbre_tickets_repas_max = max(ticket.nbre_tickets_repas for ticket in tickets_repas_etudiant_sender)
+                    nbre_tickets_repas_max = max((ticket.nbre_tickets_repas for ticket in tickets_repas_etudiant_sender), default=0)
+                    
                     if nbreticket <= nbre_tickets_repas_max: 
-                        etudiantreceive.incrementer_ticket_repas(nbreticket)
-                        etudiantsend.decrementer_ticket_repas(nbreticket)
-                        nbreticket = int(nbreticket)
-                        messages.success(request, f'{int(nbreticket)} Ticket(s) Déjeuner envoyé(s) {etudiantreceive.first_name} {etudiantreceive.last_name}.')
-                        notify.send(request.user, recipient=etudiantreceive, verb=f'Vous avez reçu {nbreticket} ticket(s) de déjeuner', description=f'De la part de {etudiantsend.first_name} {etudiantsend.last_name}')
-                        transactionsender = Transaction(description=f"Envoi de {nbreticket} ticket(s) Déjeuner à {etudiantreceive.first_name} {etudiantreceive.last_name}.", etudiant=etudiantsend)
-                        transactionsender.save()
-                        transactionreceiver = Transaction(description=f"Reception de {nbreticket} ticket(s) Déjeuner offert(s) par {etudiantsend.first_name} {etudiantsend.last_name}.", etudiant=etudiantreceive)
-                        transactionreceiver.save()
-                        return redirect('sendticket')
-                    else:
-                        messages.error(request, f'Vous ne pouvez pas envoyer plus de {nbre_tickets_dej_max} tickets déjeuner!!')        
+                        if nbreticket >0 :
+                            repas = Ticket_Repas(nbre_tickets_repas=nbreticket, etudiant=etudiantreceive)
+                            repas.save()
+                            etudiantsend.decrementer_ticket_repas(nbreticket)
+                            nbreticket = int(nbreticket)
+                            messages.success(request, f'{int(nbreticket)} Ticket(s) Déjeuner envoyé(s) à {etudiantreceive.first_name} {etudiantreceive.last_name}.')
+                            notify.send(request.user, recipient=etudiantreceive, verb=f'Vous avez reçu {nbreticket} ticket(s) de déjeuner', description=f'De la part de {etudiantsend.first_name} {etudiantsend.last_name}')
+                            transactionsender = Transaction(description=f"Envoi de {nbreticket} ticket(s) Déjeuner à {etudiantreceive.first_name} {etudiantreceive.last_name}.", etudiant=etudiantsend)
+                            transactionsender.save()
+                            transactionreceiver = Transaction(description=f"Reception de {nbreticket} ticket(s) Déjeuner offert(s) par {etudiantsend.first_name} {etudiantsend.last_name}.", etudiant=etudiantreceive)
+                            transactionreceiver.save()
+                            return redirect('sendticket')
+                        elif nbreticket ==0 :
+                            messages.error(request, 'Le nombre de tickets doit supérieur à zéro(0)!!')
+                        # else:
+                        #     messages.error(request, 'Nombre de tickets incorrect!!')
+                    elif nbre_tickets_repas_max ==0 :
+                            messages.error(request, 'Nombre de tickets Déjeuner insuffisant!!')
+                    else:    
+                        messages.error(request, f'Vous ne pouvez pas envoyer plus de {nbre_tickets_repas_max} tickets déjeuner!!')        
                 except Ticket_Repas.DoesNotExist:
                     messages.error(request, 'Nombre de tickets Déjeuner insuffisant!!')
                     return redirect('sendticket')
-        else:
-           form = SendTicketForm()        
+    else:
+        form = SendTicketForm()        
     
 
     context = {'form': form}
@@ -381,7 +418,7 @@ def sendTicket(request):
     
     
 #Autre façon API 
-class EtudiantViewset(ModelViewSet):
+class EtudiantViewset(ReadOnlyModelViewSet):
     serializer_class = EtudiantSerializer
     #queryset = Etudiant.objects.all()
     
@@ -396,7 +433,7 @@ class EtudiantViewset(ModelViewSet):
     def retrieve_by_code_permanent(self, request, pk=None):
         # Récupérer l'étudiant en fonction de son code permanent
         try:
-            etudiant = Etudiant.objects.get(identifiant=pk)
+            etudiant = Etudiant.objects.get(code_qr_content=pk)
         except Etudiant.DoesNotExist:
             return Response({'error': 'Etudiant(e) non trouve'},
                     status=status.HTTP_404_NOT_FOUND)
@@ -439,7 +476,7 @@ class EtudiantViewset(ModelViewSet):
                     status=status.HTTP_404_NOT_FOUND)
         
          #decrementer ticket dinner           
-        elif (heure)>=18 and int(heure)<=22:
+        elif (heure)>=18 and int(heure)<=23:
             try:
                 ticketRepas =  Ticket_Repas.objects.filter(etudiant=etudiant)
                 nbre_tickets_repas_max = max(ticket.nbre_tickets_repas for ticket in ticketRepas)
@@ -462,6 +499,20 @@ class EtudiantViewset(ModelViewSet):
         # Retourner les détails de l'étudiant dans la réponse
         return Response(serializer.data)
     
+ 
+def changeQrCode(request, pk):
+    etudiant = get_object_or_404(Etudiant, pk=pk)
+    
+    if request.method == 'POST':
+        #etudiant.code_qr_img.delete()
+        etudiant.save()
+        messages.success(request, 'QrCode modifié avec succes')
+        #print(etudiant.code_qr_content)
+        return redirect('detail_etudiant', pk=pk)
+        
+    
+    context = {'etudiant': etudiant}
+    return render(request, 'Etudiants/etudiant_profil.html', context)
     
     
 #TicketConsommer

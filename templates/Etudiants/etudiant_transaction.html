@@ -67,7 +67,7 @@
             <div class="template-demo">
               {% if tickets_achat %}
               {% for ticket_achat in tickets_achat%}
-              <span class="font-weight-normal text-info" style="font-size:12px;"> {{ticket_achat.date}}</span>
+              <span class="font-weight-normal text-info" style="font-size:12px;"> {{ticket_achat.date_created}}</span>
               <p class="card-description"> {{ticket_achat.description}} </p>
               {% endfor %}
               {% endif %}
@@ -80,7 +80,7 @@
             <div class="template-demo">
               {% if tickets_recept %}
               {% for ticket_recept in tickets_recept %}
-              <span class="font-weight-normal text-info" style="font-size:12px;"> {{ticket_recept.date}}</span>
+              <span class="font-weight-normal text-info" style="font-size:12px;"> {{ticket_recept.date_created}}</span>
               <p class="card-description"> {{ticket_recept.description}} </p>
               {% endfor %}
               {% endif %}
@@ -102,7 +102,7 @@
             <div class="template-demo">
               {% if tickets_envoi %}
               {% for ticket_envoi in tickets_envoi %}
-              <span class="font-weight-normal text-info" style="font-size:12px;"> {{ticket_envoi.date}}</span>
+              <span class="font-weight-normal text-info" style="font-size:12px;"> {{ticket_envoi.date_created}}</span>
               <p class="card-description"> {{ticket_envoi.description}} </p>
               {% endfor %}
               {% endif %}

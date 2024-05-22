@@ -39,6 +39,7 @@ class User(AbstractUser):
     identifiant=models.CharField(null=True,max_length=200,unique=True)
     is_etudiant = models.BooleanField(default=True)
     is_personnel = models.BooleanField(default=False)
+    is_boutiquier = models.BooleanField(default=False)
     
     
     username = None

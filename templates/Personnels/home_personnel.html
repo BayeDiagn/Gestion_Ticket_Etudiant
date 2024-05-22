@@ -119,8 +119,8 @@
     <div class="col-md-4 grid-margin transparent">
         <div class="card card-tale">
             <div class="card-body">
-                <p class="mb-0 fs-28">Nombre Tickets Petits-déjeuners</p>
-                <p>Consommé</p>
+                <p class="mb-0 fs-28">Nombre Tickets</p>
+                <p>Petits-déjeuners Consommé</p>
                 <p class="fs-30 mb-2"><strong>{{nbreTPD}}</strong> </p>
             </div>
         </div>
@@ -387,7 +387,12 @@
                     <a href="{% url 'etudiantdetail' etudiant.id %}"style="text-decoration: none; color:#305863"> {{etudiant.last_name}}</a>
                   </td>
                   <td> 
-                    <input type="checkbox" {% if etudiant.is_active %} {% else %}checked  {% endif %}  disabled>
+                    {% if etudiant.is_active %}
+                    {% comment %} <i class="fa-solid fa-user text-primary"></i> {% endcomment %}
+                    {% else %}
+                    <i class="fa-solid fa-user-lock"></i>
+                    {% endif %}
+                    {% comment %} <input type="checkbox" {% if etudiant.is_active %} {% else %}checked  {% endif %}  disabled> {% endcomment %}
                     <!--a href="{% url 'etudiantdetail' etudiant.id %}" style="text-decoration: none; color: #0693BB;">{{ etudiant.is_active }}</a-->
                   </td>
                   <td> <a href="{% url 'etudiantdetail' etudiant.id %}"style="text-decoration: none; color: #0693BB;"> <i class="ti-eye"></i> </a></td>

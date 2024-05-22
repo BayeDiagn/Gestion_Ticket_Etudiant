@@ -25,7 +25,7 @@ class Ticket_Dej_Add(admin.TabularInline):
 
 @admin.register(Etudiant)
 class Etudiants(admin.ModelAdmin):
-    list_display=('identifiant','first_name','last_name','email','is_etudiant','date_joined')
+    list_display=('identifiant','first_name','last_name','email','is_etudiant','is_boutiquier','date_joined','date_updated')
     list_filter=('identifiant','first_name','last_name')
     search_fields=('identifiant', )
     ordering = ('identifiant',)
@@ -36,7 +36,7 @@ class Etudiants(admin.ModelAdmin):
 #admin.site.register(Transaction)
 @admin.register(Transaction)
 class TransactionAdmin(admin.ModelAdmin):
-    list_display=('etudiant_identifiant','etudiant','description','date')
+    list_display=('etudiant_identifiant','etudiant','description','date_created')
     search_fields=('etudiant__identifiant', )
     
     def etudiant_identifiant(self, obj):

@@ -62,6 +62,7 @@ def home_personnel(request):
     #Aujourd'hui
     aujourdhui = date.today()
     
+    
     personnel = Personnel.objects.get(identifiant=request.user.identifiant)
     tickets_pdej_consommes_aujourd_hui = personnel.tickets.filter(type_ticket='pdej',date=aujourdhui).aggregate(Sum('quantity'))['quantity__sum'] or 0
     tickets_dej_consommes_aujourd_hui = personnel.tickets.filter(type_ticket='dej',date=aujourdhui).aggregate(Sum('quantity'))['quantity__sum'] or 0
@@ -159,8 +160,10 @@ def personnel_graphic(request):
     
     # Récupérer la date d'aujourd'hui
     aujourdhui = date.today()
-    ticket_pdej_achat_today = Transaction.objects.filter(description__icontains='Achat',date=aujourdhui).exclude(tickets_pdej=0).aggregate(Sum('tickets_pdej'))['tickets_pdej__sum'] or 0
-    ticket_dej_achat_today = Transaction.objects.filter(description__icontains='Achat',date=aujourdhui).exclude(tickets_dej=0).aggregate(nbre_dej=Sum('tickets_dej'))['nbre_dej'] or 0
+    #aujourdhui = timezone.now().date()
+    
+    ticket_pdej_achat_today = Transaction.objects.filter(description__icontains='Achat',date_created__date=aujourdhui).exclude(tickets_pdej=0).aggregate(Sum('tickets_pdej'))['tickets_pdej__sum'] or 0
+    ticket_dej_achat_today = Transaction.objects.filter(description__icontains='Achat',date_created__date=aujourdhui).exclude(tickets_dej=0).aggregate(nbre_dej=Sum('tickets_dej'))['nbre_dej'] or 0
     
     montant_pdej_today = 50*ticket_pdej_achat_today
     montant_dej_today = 100*ticket_dej_achat_today
@@ -170,8 +173,8 @@ def personnel_graphic(request):
     debut_semaine = aujourdhui - timedelta(days=aujourdhui.weekday())
     fin_semaine = debut_semaine + timedelta(days=6)
     
-    ticket_pdej_achat_week = Transaction.objects.filter(description__icontains='Achat',date__range=(debut_semaine, fin_semaine)).exclude(tickets_pdej=0).aggregate(Sum('tickets_pdej'))['tickets_pdej__sum'] or 0
-    ticket_dej_achat_week = Transaction.objects.filter(description__icontains='Achat',date__range=(debut_semaine, fin_semaine)).exclude(tickets_dej=0).aggregate(nbre_dej=Sum('tickets_dej'))['nbre_dej'] or 0
+    ticket_pdej_achat_week = Transaction.objects.filter(description__icontains='Achat',date_created__date__range=(debut_semaine, fin_semaine)).exclude(tickets_pdej=0).aggregate(Sum('tickets_pdej'))['tickets_pdej__sum'] or 0
+    ticket_dej_achat_week = Transaction.objects.filter(description__icontains='Achat',date_created__date__range=(debut_semaine, fin_semaine)).exclude(tickets_dej=0).aggregate(nbre_dej=Sum('tickets_dej'))['nbre_dej'] or 0
     
     montant_pdej_week = 50*ticket_pdej_achat_week
     montant_dej_week = 100*ticket_dej_achat_week
@@ -182,8 +185,8 @@ def personnel_graphic(request):
     premier_jour_mois = date(aujourdhui.year, aujourdhui.month, 1)
     dernier_jour_mois = date(aujourdhui.year, aujourdhui.month, monthrange(aujourdhui.year, aujourdhui.month)[1])
     
-    ticket_pdej_achat_mois = Transaction.objects.filter(description__icontains='Achat',date__range=(premier_jour_mois,dernier_jour_mois)).exclude(tickets_pdej=0).aggregate(Sum('tickets_pdej'))['tickets_pdej__sum'] or 0
-    ticket_dej_achat_mois = Transaction.objects.filter(description__icontains='Achat',date__range=(premier_jour_mois, dernier_jour_mois)).exclude(tickets_dej=0).aggregate(nbre_dej=Sum('tickets_dej'))['nbre_dej'] or 0
+    ticket_pdej_achat_mois = Transaction.objects.filter(description__icontains='Achat',date_created__date__range=(premier_jour_mois,dernier_jour_mois)).exclude(tickets_pdej=0).aggregate(Sum('tickets_pdej'))['tickets_pdej__sum'] or 0
+    ticket_dej_achat_mois = Transaction.objects.filter(description__icontains='Achat',date_created__date__range=(premier_jour_mois, dernier_jour_mois)).exclude(tickets_dej=0).aggregate(nbre_dej=Sum('tickets_dej'))['nbre_dej'] or 0
     
     montant_pdej_mois = 50*ticket_pdej_achat_mois
     montant_dej_mois = 100*ticket_dej_achat_mois
@@ -195,8 +198,8 @@ def personnel_graphic(request):
     premier_jour_annee = date(aujourdhui.year, 1, 1)
     dernier_jour_annee = date(aujourdhui.year, 12, 31)
     
-    ticket_pdej_achat_annee = Transaction.objects.filter(description__icontains='Achat',date__range=(premier_jour_annee, dernier_jour_annee)).exclude(tickets_pdej=0).aggregate(Sum('tickets_pdej'))['tickets_pdej__sum'] or 0
-    ticket_dej_achat_annee = Transaction.objects.filter(description__icontains='Achat',date__range=(premier_jour_annee, dernier_jour_annee)).exclude(tickets_dej=0).aggregate(nbre_dej=Sum('tickets_dej'))['nbre_dej'] or 0
+    ticket_pdej_achat_annee = Transaction.objects.filter(description__icontains='Achat',date_created__date__range=(premier_jour_annee, dernier_jour_annee)).exclude(tickets_pdej=0).aggregate(Sum('tickets_pdej'))['tickets_pdej__sum'] or 0
+    ticket_dej_achat_annee = Transaction.objects.filter(description__icontains='Achat',date_created__date__range=(premier_jour_annee, dernier_jour_annee)).exclude(tickets_dej=0).aggregate(nbre_dej=Sum('tickets_dej'))['nbre_dej'] or 0
     
     montant_pdej_annee = 50*ticket_pdej_achat_annee
     montant_dej_annee = 100*ticket_dej_achat_annee
@@ -248,8 +251,8 @@ class EtudiantDetail(DetailView):
         premier_jour_mois = date(aujourdhui.year, aujourdhui.month, 1)
         dernier_jour_mois = date(aujourdhui.year, aujourdhui.month, monthrange(aujourdhui.year, aujourdhui.month)[1])
     
-        ticket_pdej_achat_mois = Transaction.objects.filter(etudiant=etudiant_id,description__icontains='Achat',date__range=(premier_jour_mois,dernier_jour_mois)).exclude(tickets_pdej=0).aggregate(Sum('tickets_pdej'))['tickets_pdej__sum'] or 0
-        ticket_dej_achat_mois = Transaction.objects.filter(etudiant=etudiant_id,description__icontains='Achat',date__range=(premier_jour_mois, dernier_jour_mois)).exclude(tickets_dej=0).aggregate(nbre_dej=Sum('tickets_dej'))['nbre_dej'] or 0
+        ticket_pdej_achat_mois = Transaction.objects.filter(etudiant=etudiant_id,description__icontains='Achat',date_created__date__range=(premier_jour_mois,dernier_jour_mois)).exclude(tickets_pdej=0).aggregate(Sum('tickets_pdej'))['tickets_pdej__sum'] or 0
+        ticket_dej_achat_mois = Transaction.objects.filter(etudiant=etudiant_id,description__icontains='Achat',date_created__date__range=(premier_jour_mois, dernier_jour_mois)).exclude(tickets_dej=0).aggregate(nbre_dej=Sum('tickets_dej'))['nbre_dej'] or 0
         
         montant_pdej_mois = 50*ticket_pdej_achat_mois
         montant_dej_mois = 100*ticket_dej_achat_mois
@@ -261,8 +264,8 @@ class EtudiantDetail(DetailView):
         premier_jour_annee = date(aujourdhui.year, 1, 1)
         dernier_jour_annee = date(aujourdhui.year, 12, 31)
     
-        ticket_pdej_achat_annee = Transaction.objects.filter(etudiant=etudiant_id,description__icontains='Achat',date__range=(premier_jour_annee, dernier_jour_annee)).exclude(tickets_pdej=0).aggregate(Sum('tickets_pdej'))['tickets_pdej__sum'] or 0
-        ticket_dej_achat_annee = Transaction.objects.filter(etudiant=etudiant_id,description__icontains='Achat',date__range=(premier_jour_annee, dernier_jour_annee)).exclude(tickets_dej=0).aggregate(nbre_dej=Sum('tickets_dej'))['nbre_dej'] or 0
+        ticket_pdej_achat_annee = Transaction.objects.filter(etudiant=etudiant_id,description__icontains='Achat',date_created__date__range=(premier_jour_annee, dernier_jour_annee)).exclude(tickets_pdej=0).aggregate(Sum('tickets_pdej'))['tickets_pdej__sum'] or 0
+        ticket_dej_achat_annee = Transaction.objects.filter(etudiant=etudiant_id,description__icontains='Achat',date_created__date__range=(premier_jour_annee, dernier_jour_annee)).exclude(tickets_dej=0).aggregate(nbre_dej=Sum('tickets_dej'))['nbre_dej'] or 0
     
         montant_pdej_annee = 50*ticket_pdej_achat_annee
         montant_dej_annee = 100*ticket_dej_achat_annee

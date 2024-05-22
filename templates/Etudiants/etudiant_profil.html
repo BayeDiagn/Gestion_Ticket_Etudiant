@@ -41,55 +41,118 @@
 <!--Contenu Principal-->    
 
 <div class="row">
-    <div class="col-12 grid-margin stretch-card">
+  <div class="col-md-6 grid-margin stretch-card">
+    <div class="card">
+      <div class="card-body">
+        <p class="card-title">Informations personnelle</p>
 
-      <div class="card" style="border-top: 20px solid #4B49AC; padding: 20px;">
-        <div class="row">
-        <div class="col-md-6">
-            <div class="card-body ">
-              <h4 class="card-title text-primary">Informations personnelle</h4>
-              <div class="template-demo">
-                <div style="display: flex; flex-direction: column;">
-                    <div style="display: flex; align-items: center; margin-bottom: 15px;">
-                        <p style="font-weight: 900; margin: 0;">Prénom </p>
-                        <span class="text-primary" style="margin-left: 90px; padding-left: 90px;">{{ etudiant.first_name }}</span>
-                    </div>
-                    <div style="display: flex; align-items: center; margin-bottom: 15px;">
-                        <p style="font-weight: 900; margin: 0;">Nom </p>
-                        <span class="text-primary" style=" margin-left: 110px; padding-left: 90px;">{{ etudiant.last_name }}</span>
-                    </div>
-                    <div style="display: flex; align-items: center; margin-bottom: 15px;">
-                        <p style="font-weight: 900; margin: 0;">Code Permenant </p>
-                        <span class="text-primary" style=" margin-left: 70px; padding-left: 50px;">{{ etudiant.identifiant }}</span>
-                    </div>
-
-                </div>
-
-                <div style="padding-top:18px; ">
-                    <a href="{% url 'passwordchanged_etudiant' etudiant.id %}" class="btn btn-primary btn-rounded btn-fw" style="padding:8px">Changer mon mot de passe</a>
-                </div>
-               
-
+        <div class="container ">
+          <div class="row mb-3">
+              <div class="col-6">
+                  <p class="text-muted">Prénom</p>
               </div>
-            </div>
-        </div>
+              <div class="col-6">
+                  <p class="text-muted">{{ etudiant.first_name }}</p>
+              </div>
+          </div>
+          <div class="row mb-3">
+              <div class="col-6">
+                  <p class="text-muted">Nom</p>
+              </div>
+              <div class="col-6">
+                  <p class="text-muted">{{ etudiant.last_name }}</p>
+              </div>
+          </div>
+          <div class="row mb-3">
+              <div class="col-6">
+                  <p class="text-muted">Code Permanant</p>
+              </div>
+              <div class="col-6">
+                  <p class="text-muted">{{ etudiant.identifiant }}</p>
+              </div>
+          </div>
+          <div class="row mb-3">
+              <div class="col-6">
+                  <p class="text-muted">Email</p>
+              </div>
+              <div class="col-6">
+                  <p class="text-muted">{{ etudiant.email }}</p>
+              </div>
+          </div>
+          
+          <div class="row mb-3 pt-5 ml-4">
+            <a href="{% url 'passwordchanged_etudiant' etudiant.id %}" class="btn btn-info rounded-1" style="padding:8px">Changer mon mot de passe</a>
+         </div>
 
-        <!--div class="col-md-6">
-            <div class="card-body">
-              <div class="template-demo" style="display: flex; align-items: center;">
-                <div style="width: 70%;">
-                    <p class="text-primary" style="font-weight: 600;">{{ etudiant.last_name }}</p>
-                    <p class="text-primary" style="font-weight: 600;">{{ etudiant.identifiant }}</p>
-                </div>
-            </div>
-            </div>
-        </div-->
-    
-    
+      </div>
+      
       </div>
     </div>
   </div>
+
+  <div class="col-md-6 grid-margin stretch-card">
+    <div class="card">
+      <div class="card-body">
+       <div class="d-flex justify-content-between">
+        <p class="card-title">QRCode</p>
+        
+       </div>
+
+       {% if messages %}
+       {% for message in messages %}
+           {% if message.tags == 'success' %}
+               <div class="alert alert-success border-0 rounded  message" role="alert">
+                   {{ message }}
+               </div>
+           {% endif %}
+       {% endfor %}
+       {% endif %}
+
+       <div class="text-center">
+        <img src="{{ etudiant.code_qr_img.url }}" alt="QR Code" class="img-fluid" style="max-width: 200px; cursor: pointer;" data-toggle="modal" data-target="#qrCodeModal">
+
+        <form class="pt-4" action="{% url 'etudiant_change_qrcode' etudiant.id %}" method="POST"> 
+          {% csrf_token %}
+          <button type="submit" class="btn btn-info btn-rounded btn-fw" style="padding:8px">Changer mon QRCode</button>
+        </form>
+      </div>
+
+      <div class="modal fade" id="qrCodeModal" tabindex="-1" role="dialog" aria-labelledby="qrCodeModalLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h4 class="modal-title" id="qrCodeModalLabel">QRCode</h4>
+              <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+              </button>
+            </div>
+            <div class="modal-body text-center">
+              <img src="{{ etudiant.code_qr_img.url }}" alt="QR Code" class="img-fluid" style="max-width: 300px;">
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-info" data-dismiss="modal">Fermer</button>
+            </div>
+          </div>
+        </div>
+      </div>  
+
+      </div>
+    </div>
+  </div>
+  
 </div>
 
+<script>
+  // Sélectionnez tous les éléments de classe 'message'
+  const messages = document.querySelectorAll('.message');
+
+  // Masquer chaque message après 5 secondes
+  messages.forEach(message => {
+      setTimeout(() => {
+          message.style.display = 'none';
+      }, 5000);  // 5000 millisecondes = 5 secondes
+  });
+
+</script>
 
 {% endblock %}

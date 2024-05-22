@@ -65,8 +65,8 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
-#Le délai d'inactivité en secondes après lequel la session sera considérée comme expirée
-SESSION_EXPIRE_AFTER_INACTIVITY = 900
+#Le délai d'inactivité en secondes après lequel la session sera considérée comme expirée 30mn
+SESSION_EXPIRE_AFTER_INACTIVITY = 1800
 
 X_FRAME_OPTIONS = "SAMEORIGIN"
 SILENCED_SYSTEM_CHECKS = ["security.W019"]
@@ -159,6 +159,8 @@ AUTH_USER_MODEL='Admin.User'
 
 LOGIN_URL = "login_etudiant"
 
+
+EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
 
 
 try:

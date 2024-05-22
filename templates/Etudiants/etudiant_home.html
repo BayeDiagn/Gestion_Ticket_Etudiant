@@ -116,9 +116,11 @@
                             <i class="mdi mdi-calendar"></i>Recentes Transactions
                         </button>
                         <div class="dropdown-menu dropdown-menu-right" aria-labelledby="dropdownMenuDate2">
+                            {% if currentTransactions %}
                             {% for currentTransaction in currentTransactions %}
                             <a class="dropdown-item" href="{% url 'transaction_etudiant' %}">{{currentTransaction.description}}</a>
                             {% endfor %}
+                            {% endif %}
                         </div>  
                     </div>
                 </div>         

@@ -83,19 +83,39 @@
             <div class="card-body ">
               <h4 class="card-title text-primary">Informations personnelle</h4> 
               <div class="template-demo" style="">
-                <div style="display: flex; flex-direction: column;">
-                    <div style="display: flex; align-items: center; margin-bottom: 15px;">
-                        <p style="font-weight: 900; margin: 0;">Prénom </p>
-                        <span class="text-primary" style="margin-left: 90px; padding-left: 90px;">{{ etudiant.first_name }}</span>
-                    </div>
-                    <div style="display: flex; align-items: center; margin-bottom: 15px;">
-                        <p style="font-weight: 900; margin: 0;">Nom </p>
-                        <span class="text-primary" style=" margin-left: 110px; padding-left: 90px;">{{ etudiant.last_name }}</span>
-                    </div>
-                    <div style="display: flex; align-items: center; margin-bottom: 15px;">
-                        <p style="font-weight: 900; margin: 0;">Code Permenant </p>
-                        <span class="text-primary" style=" margin-left: 70px; padding-left: 50px;">{{ etudiant.identifiant }}</span>
-                    </div>
+                <div class="container ">
+                  <div class="row mb-3">
+                      <div class="col-6">
+                          <p class="text-muted">Prénom</p>
+                      </div>
+                      <div class="col-6">
+                          <p class="text-muted">{{ etudiant.first_name }}</p>
+                      </div>
+                  </div>
+                  <div class="row mb-3">
+                      <div class="col-6">
+                          <p class="text-muted">Nom</p>
+                      </div>
+                      <div class="col-6">
+                          <p class="text-muted">{{ etudiant.last_name }}</p>
+                      </div>
+                  </div>
+                  <div class="row mb-3">
+                      <div class="col-6">
+                          <p class="text-muted">Code Permanant</p>
+                      </div>
+                      <div class="col-6">
+                          <p class="text-muted">{{ etudiant.identifiant }}</p>
+                      </div>
+                  </div>
+                  <div class="row mb-3">
+                      <div class="col-6">
+                          <p class="text-muted">Email</p>
+                      </div>
+                      <div class="col-6">
+                          <p class="text-muted">{{ etudiant.email }}</p>
+                      </div>
+                  </div>
 
                 </div>
 
