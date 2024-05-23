@@ -504,11 +504,13 @@ def changeQrCode(request, pk):
     etudiant = get_object_or_404(Etudiant, pk=pk)
     
     if request.method == 'POST':
-        #etudiant.code_qr_img.delete()
+        
+        # Enregistrer le nouveau QR code
         etudiant.save()
-        messages.success(request, 'QrCode modifié avec succes')
+        
+        messages.success(request, 'QrCode modifié avec succés')
         #print(etudiant.code_qr_content)
-        return redirect('detail_etudiant', pk=pk)
+        return redirect('detail_etudiant', pk)
         
     
     context = {'etudiant': etudiant}

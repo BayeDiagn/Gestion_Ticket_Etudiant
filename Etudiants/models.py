@@ -88,15 +88,15 @@ class Etudiant (User):
     
     
     #redefinition de le methode save()
-    def save(self,*args, **kwargs):
+    def save(self, *args, **kwargs):
         
-        if not self.pk:
-            super(Etudiant, self).save(*args, **kwargs)
+        # Supprimer l'ancienne image QR si elle existe
+        if self.pk and self.code_qr_img:
+            self.code_qr_img.delete(save=False)
             
         else:
-            # Supprimer l'ancienne image du QR code
-            self.code_qr_img.delete()
-            
+            super().save(*args, **kwargs)
+
         chaine_unique1 = ''.join(random.choices(string.ascii_uppercase + string.digits, k=5))
         chaine_unique2 = ''.join(random.choices(string.ascii_letters + string.digits, k=5))
         self.code_qr_content = f"{chaine_unique1}_{self.first_name}_{self.last_name}_{self.pk}{chaine_unique2}"
@@ -109,10 +109,10 @@ class Etudiant (User):
         )
         qr.add_data(self.code_qr_content)
         qr.make(fit=True)
+            
         # Générer l'image du code QR
         img = qr.make_image(fill_color="black", back_color="white")
-        
-       
+            
         # logo_path = settings.STATIC_ROOT / 'images/uadbqrcode.png'
         # logo = Image.open(logo_path)
 
@@ -124,16 +124,15 @@ class Etudiant (User):
         #     (img.size[0] - logo_size) // 2,
         #     (img.size[1] - logo_size) // 2  
         # )
-        # img.paste(logo, pos, mask=logo)  
-
-
-        
+        # img.paste(logo, pos, mask=logo)
+            
         buffer = BytesIO()
         img.save(buffer, format='PNG')    
         fname = f"Qrcode-{self.identifiant}.png"
-        self.code_qr_img.save(fname,File(buffer),save=False)
-            
-        super(Etudiant, self).save(*args, **kwargs)
+        self.code_qr_img.save(fname, File(buffer), save=False)
+        
+        super(Etudiant, self).save(*args, **kwargs)  # Sauvegarder l'instance avec les nouvelles informations
+
         
         # if not self.tickets_repas.exists():
         #     # S'il n'y en a pas, initialise nbre_tickets_repas à 0
