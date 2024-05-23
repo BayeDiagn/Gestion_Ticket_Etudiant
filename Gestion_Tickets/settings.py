@@ -148,6 +148,11 @@ MEDIA_URL = 'images/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'images') 
 
 
+# Désactiver le cache pour les fichiers média
+# MEDIA_CACHE_CONTROL = 'no-cache, no-store, must-revalidate'
+# MEDIA_CACHE_CONTROL_MAX_AGE = 0
+
+
 #STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 
 # Default primary key field type

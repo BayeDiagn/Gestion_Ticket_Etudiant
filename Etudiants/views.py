@@ -1,5 +1,5 @@
 import datetime
-from decimal import Decimal
+from django.utils import timezone
 from django.urls import reverse_lazy
 from django.shortcuts import redirect, render,get_object_or_404
 
@@ -265,6 +265,9 @@ class EtudiantDetailView(DetailView):
     context_object_name = "etudiant"
     template_name = "Etudiants/etudiant_profil.html"
     model = Etudiant
+    
+    
+
  
  
     
@@ -441,17 +444,24 @@ class EtudiantViewset(ReadOnlyModelViewSet):
         
         heure = datetime.datetime.now().hour
         
-        
+        # Vérifiez si l'étudiant est bloque
+        if not etudiant.is_active:
+            return Response({"error": "Compte bloque !!"}, status=status.HTTP_403_FORBIDDEN)
+
         #decrementer ticket dej
         if (heure)>=6 and int(heure)<=11:
+            
             try:
                 ticketDej =  Ticket_Dej.objects.filter(etudiant=etudiant)
-                nbre_tickets_dej_max = max(ticket.nbre_tickets_dej for ticket in ticketDej)
-                if nbre_tickets_dej_max > 0:
-                    etudiant.decrementer_ticket_dej(1)
-                    #transaction = Transaction(description=f"Consommation d'un ticket Petit-déjeuner.", etudiant=etudiant)
-                    #transaction.save()
-                    return Response({"message": "Decrementation reussie!!","typeofticket":"pdej"})
+                if ticketDej.exists():
+                    nbre_tickets_dej_max = max(ticket.nbre_tickets_dej for ticket in ticketDej)
+                    if nbre_tickets_dej_max > 0:
+                        etudiant.decrementer_ticket_dej(1)
+                        #transaction = Transaction(description=f"Consommation d'un ticket Petit-déjeuner.", etudiant=etudiant)
+                        #transaction.save()
+                        return Response({"message": "Decrementation reussie!!","typeofticket":"pdej"})
+                    else:
+                        return Response({"error": "Aucun ticket petit-dejeuner!!"}, status=status.HTTP_404_NOT_FOUND)
                 else:
                     return Response({"error": "Aucun ticket petit-dejeuner!!"}, status=status.HTTP_404_NOT_FOUND)
             except Ticket_Dej.DoesNotExist:
@@ -462,44 +472,49 @@ class EtudiantViewset(ReadOnlyModelViewSet):
         #decrementer ticket dejeuner 
         elif (heure)>=12 and (heure)<=15 :
                 try:
-                    ticketRepas =  Ticket_Repas.objects.filter(etudiant=etudiant)
-                    nbre_tickets_repas_max = max(ticket.nbre_tickets_repas for ticket in ticketRepas)
-                    if nbre_tickets_repas_max > 0:
-                        etudiant.decrementer_ticket_repas(1)
-                        #transaction = Transaction(description=f"Consommation d'un ticket déjeuner.", etudiant=etudiant)
-                        #transaction.save()
-                        return Response({"message": "Decrementation reussie!!" ,"typeofticket":"dej"})
+                    ticketRepas = Ticket_Repas.objects.filter(etudiant=etudiant)
+                    if ticketRepas.exists():
+                        nbre_tickets_repas_max = max(ticket.nbre_tickets_repas for ticket in ticketRepas)
+                        if nbre_tickets_repas_max > 0:
+                            etudiant.decrementer_ticket_repas(1)
+                            # transaction = Transaction(description=f"Consommation d'un ticket diner.", etudiant=etudiant)
+                            # transaction.save()
+                            return Response({"message": "Decrementation reussie !!", "typeofticket": "dej"})
+                        else:
+                            return Response({"error": "Aucun ticket dejeuner !!"}, status=status.HTTP_404_NOT_FOUND)
                     else:
-                        return Response({"error": "Aucun ticket dejeuner!!"}, status=status.HTTP_404_NOT_FOUND)
+                        return Response({"error": "Aucun ticket dejeuner !!"}, status=status.HTTP_404_NOT_FOUND)
                 except Ticket_Repas.DoesNotExist:
-                    return Response({"error": "Aucun ticket dejeuner!!"},
-                    status=status.HTTP_404_NOT_FOUND)
+                    return Response({"error": "Aucun ticket dejeuner !!"}, status=status.HTTP_404_NOT_FOUND)
         
          #decrementer ticket dinner           
         elif (heure)>=18 and int(heure)<=23:
             try:
-                ticketRepas =  Ticket_Repas.objects.filter(etudiant=etudiant)
-                nbre_tickets_repas_max = max(ticket.nbre_tickets_repas for ticket in ticketRepas)
-                if nbre_tickets_repas_max > 0:
-                    etudiant.decrementer_ticket_repas(1)
-                    #transaction = Transaction(description=f"Consommation d'un ticket diner.", etudiant=etudiant)
-                    #transaction.save()
-                    return Response({"message": "Decrementation reussie!!","typeofticket":"dinner"})
+                ticketRepas = Ticket_Repas.objects.filter(etudiant=etudiant)
+                if ticketRepas.exists():
+                    nbre_tickets_repas_max = max(ticket.nbre_tickets_repas for ticket in ticketRepas)
+                    if nbre_tickets_repas_max > 0:
+                        etudiant.decrementer_ticket_repas(1)
+                        # transaction = Transaction(description=f"Consommation d'un ticket diner.", etudiant=etudiant)
+                        # transaction.save()
+                        return Response({"message": "Decrementation reussie !!", "typeofticket": "dinner"})
+                    else:
+                        return Response({"error": "Aucun ticket dejeuner !!"}, status=status.HTTP_404_NOT_FOUND)
                 else:
-                    return Response({"error": "Aucun ticket dejeuner!!"}, status=status.HTTP_404_NOT_FOUND)
+                    return Response({"error": "Aucun ticket dejeuner !!"}, status=status.HTTP_404_NOT_FOUND)
             except Ticket_Repas.DoesNotExist:
-                return Response({"error": "Aucun ticket dejeuner!!"},
-                status=status.HTTP_404_NOT_FOUND)
+                return Response({"error": "Aucun ticket dejeuner !!"}, status=status.HTTP_404_NOT_FOUND)
         
         else:
-            return Response({"error": "Hors delai!!"}, status=status.HTTP_404_NOT_FOUND)
+            return Response({"error": "Hors delai !!"}, status=status.HTTP_404_NOT_FOUND)
               
         # Sérialiser les détails de l'étudiant
         serializer = self.get_serializer(etudiant)
         # Retourner les détails de l'étudiant dans la réponse
         return Response(serializer.data)
     
- 
+@etudiant_required
+@login_required
 def changeQrCode(request, pk):
     etudiant = get_object_or_404(Etudiant, pk=pk)
     
@@ -510,7 +525,7 @@ def changeQrCode(request, pk):
         
         messages.success(request, 'QrCode modifié avec succés')
         #print(etudiant.code_qr_content)
-        return redirect('detail_etudiant', pk)
+        return redirect('detail_etudiant', pk=pk)
         
     
     context = {'etudiant': etudiant}
@@ -546,10 +561,23 @@ class TicketConsommerViewset(APIView):
         except Personnel.DoesNotExist:
             return Response({'error': 'Personnel non trouvé'}, status=status.HTTP_404_NOT_FOUND)
             
-        ticket = TicketConsommer(type_ticket=type_ticket, quantity=quantity, personnel=personnel)
-        ticket.save()
-        serializer = TicketConsommerSerializer(ticket)
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
+        today = timezone.now().date()
+        
+        # Vérifie si un ticket du même type a déjà été consommé aujourd'hui
+        ticket_exist = TicketConsommer.objects.filter(personnel=personnel, type_ticket=type_ticket, date=today).first()
+        
+        if ticket_exist:
+            # Si un ticket existe, mettez simplement à jour la quantité
+            ticket_exist.quantity += int(quantity)
+            ticket_exist.save()
+            serializer = TicketConsommerSerializer(ticket_exist)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        else:
+            # Si aucun ticket n'existe, créez un nouveau ticket
+            ticket = TicketConsommer(type_ticket=type_ticket, quantity=quantity, personnel=personnel, date=today)
+            ticket.save()
+            serializer = TicketConsommerSerializer(ticket)
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
                
     
     

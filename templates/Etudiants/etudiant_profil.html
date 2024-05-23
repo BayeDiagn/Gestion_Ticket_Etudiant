@@ -109,7 +109,7 @@
        {% endif %}
 
        <div class="text-center">
-        <img src="{{ etudiant.code_qr_img.url }}" alt="QR Code" class="img-fluid" style="max-width: 200px; cursor: pointer;" data-toggle="modal" data-target="#qrCodeModal">
+        <img src="{{ etudiant.code_qr_img.url }}?{% now 'U' %}" alt="QR Code" class="img-fluid" style="max-width: 200px; cursor: pointer;" data-toggle="modal" data-target="#qrCodeModal">
 
         <form class="pt-4" action="{% url 'etudiant_change_qrcode' etudiant.id %}" method="POST"> 
           {% csrf_token %}
@@ -127,7 +127,7 @@
               </button>
             </div>
             <div class="modal-body text-center">
-              <img src="{{ etudiant.code_qr_img.url }}" alt="QR Code" class="img-fluid" style="max-width: 300px;">
+              <img src="{{ etudiant.code_qr_img.url }}?{% now 'U' %}" alt="QR Code" class="img-fluid" style="max-width: 300px;">
             </div>
             <div class="modal-footer">
               <button type="button" class="btn btn-info" data-dismiss="modal">Fermer</button>

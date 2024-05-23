@@ -65,6 +65,8 @@ def home_personnel(request):
     
     personnel = Personnel.objects.get(identifiant=request.user.identifiant)
     tickets_pdej_consommes_aujourd_hui = personnel.tickets.filter(type_ticket='pdej',date=aujourdhui).aggregate(Sum('quantity'))['quantity__sum'] or 0
+    #tickets_pdej_consommes_aujourd_hui = personnel.tickets.filter(type_ticket='pdej',date=aujourdhui)
+    
     tickets_dej_consommes_aujourd_hui = personnel.tickets.filter(type_ticket='dej',date=aujourdhui).aggregate(Sum('quantity'))['quantity__sum'] or 0
     tickets_dinner_consommes_aujourd_hui = personnel.tickets.filter(type_ticket='dinner',date=aujourdhui).aggregate(Sum('quantity'))['quantity__sum'] or 0
     
