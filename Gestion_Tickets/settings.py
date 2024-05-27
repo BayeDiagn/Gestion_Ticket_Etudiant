@@ -68,6 +68,9 @@ MIDDLEWARE = [
 #Le délai d'inactivité en secondes après lequel la session sera considérée comme expirée 30mn
 SESSION_EXPIRE_AFTER_INACTIVITY = 1800
 
+
+
+
 X_FRAME_OPTIONS = "SAMEORIGIN"
 SILENCED_SYSTEM_CHECKS = ["security.W019"]
 

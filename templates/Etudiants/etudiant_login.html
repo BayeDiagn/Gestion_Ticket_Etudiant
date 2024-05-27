@@ -30,9 +30,18 @@
                   <img src="{% static "images/uadb.png" %}" alt="logo" class="mx-auto d-block" style="max-width: 150px;">
                 </div>
                 <h4 style="font-weight: 600; padding-bottom:12px; margin-top:8px;">Connectez-vous à votre compte</h4>
-                {% if form.errors %}
-                <div class="alert alert-danger border-0 rounded" role="alert">Nom d'utilisateur ou mot de passe incorrect!</div>
+                {% if messages %}
+                {% for message in messages %}
+                    {% if message.tags == 'error' %}
+                        <div class="alert alert-danger border-0 rounded  message" role="alert">
+                            {{ message }}
+                        </div>
+                        {% endif %}     
+                {% endfor %}
                 {% endif %}
+                {% comment %} {% if form.errors %}
+                <div class="alert alert-danger border-0 rounded" role="alert">Nom d'utilisateur ou mot de passe incorrect!</div>
+                {% endif %} {% endcomment %}
                 <form class="pt-3" method="POST">
                     {% csrf_token %} 
                   <div class="form-group">

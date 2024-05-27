@@ -1,15 +1,17 @@
 import datetime
 from django.utils import timezone
-from django.urls import reverse_lazy
+from django.urls import reverse, reverse_lazy
 from django.shortcuts import redirect, render,get_object_or_404
 
 
+from Admin.models import User
 from Etudiants.forms import EtudiantCreationForm, SendTicketForm
 from Etudiants.models import Etudiant, Transaction
 
 from rest_framework.views import APIView
 from Etudiants.serializers import EtudiantSerializer
 from Etudiants.utils import PayTech
+from Gestion_Tickets import settings
 from Personnels.serializers import PersonnelSerializer, TicketConsommerSerializer
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet,ReadOnlyModelViewSet
@@ -36,6 +38,12 @@ from paydunya import InvoiceItem, Store,Invoice
 
 from Gestion_Tickets.settings import PAYDUNYA_ACCESS_TOKENS, SESSION_EXPIRE_AFTER_INACTIVITY,api_key,api_secret
 import uuid
+from .mixins import LoginAttemptsMixin
+
+
+
+
+
 
 
 
@@ -228,8 +236,10 @@ def clear_notification(request):
 
 
 #login
-class EtudiantLoginView(LoginView):
+class EtudiantLoginView(LoginAttemptsMixin, LoginView):
     template_name = "Etudiants/etudiant_login.html"
+    
+ 
     
     def get_success_url(self):
         #user = get_user_model()

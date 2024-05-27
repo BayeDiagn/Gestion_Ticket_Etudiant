@@ -40,6 +40,8 @@ class User(AbstractUser):
     is_etudiant = models.BooleanField(default=True)
     is_personnel = models.BooleanField(default=False)
     is_boutiquier = models.BooleanField(default=False)
+    failed_login = models.PositiveIntegerField(default=0)
+    account_locked_until = models.DateTimeField(null=True, blank=True)
     
     
     username = None
