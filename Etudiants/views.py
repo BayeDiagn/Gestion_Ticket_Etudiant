@@ -38,7 +38,7 @@ from paydunya import InvoiceItem, Store,Invoice
 
 from Gestion_Tickets.settings import PAYDUNYA_ACCESS_TOKENS, SESSION_EXPIRE_AFTER_INACTIVITY,api_key,api_secret
 import uuid
-from .mixins import LoginAttemptsMixin
+from .mixins import CombinedLoginBlockMixin
 
 
 
@@ -93,7 +93,7 @@ def etudiant_home(request):
     
     notifications = Notification.objects.filter(recipient=request.user, unread=True)
     nbre = notifications.count()
-
+   
     #print(str(uuid.uuid4()))
     
     #paiement avec paytech
@@ -236,7 +236,7 @@ def clear_notification(request):
 
 
 #login
-class EtudiantLoginView(LoginAttemptsMixin, LoginView):
+class EtudiantLoginView(CombinedLoginBlockMixin, LoginView):
     template_name = "Etudiants/etudiant_login.html"
     
  
