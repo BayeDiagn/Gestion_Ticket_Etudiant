@@ -20,7 +20,7 @@ from Personnels.serializers import TicketConsommerSerializer
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
 from rest_framework import status
-
+from django.contrib.auth.mixins import LoginRequiredMixin
 
 
 
@@ -234,7 +234,7 @@ def personnel_graphic(request):
 
 #Detail Etudiant
 #@personnel_required
-class EtudiantDetail(DetailView):
+class EtudiantDetail(LoginRequiredMixin,DetailView):
     model = Etudiant
     template_name='Personnels/details_etudiants.html'
     

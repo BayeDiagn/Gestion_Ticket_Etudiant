@@ -39,6 +39,7 @@ from paydunya import InvoiceItem, Store,Invoice
 from Gestion_Tickets.settings import PAYDUNYA_ACCESS_TOKENS, SESSION_EXPIRE_AFTER_INACTIVITY,api_key,api_secret
 import uuid
 from .mixins import CombinedLoginBlockMixin
+from django.contrib.auth.mixins import LoginRequiredMixin
 
 
 
@@ -271,7 +272,7 @@ def etudiant_deconnected(request):
 
 
 #Detail_etudiant
-class EtudiantDetailView(DetailView):
+class EtudiantDetailView(LoginRequiredMixin,DetailView):
     context_object_name = "etudiant"
     template_name = "Etudiants/etudiant_profil.html"
     model = Etudiant
@@ -282,7 +283,7 @@ class EtudiantDetailView(DetailView):
  
     
 #Changement mot de passe
-class EtudiantPasswordChangeView(PasswordChangeView):
+class EtudiantPasswordChangeView( PasswordChangeView):
     template_name = "Etudiants/etudiant_changedPassword.html"
     success_url=reverse_lazy('password_reset_complete')
 
