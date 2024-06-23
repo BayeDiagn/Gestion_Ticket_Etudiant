@@ -142,9 +142,9 @@ def etudiant_home(request):
         pay_tech.setCurrency('XOF')
         pay_tech.setRefCommand(str(uuid.uuid4()))
         pay_tech.setNotificationUrl({
-            'ipn_url': 'https://192.168.1.49:8000/ipn',
-            'success_url': 'https://192.168.1.49:8000/payment-done/',
-            'cancel_url': 'https://192.168.1.49:8000/accueil/',
+            'ipn_url': 'https://192.168.1.5:8000/ipn',
+            'success_url': 'https://192.168.1.5:8000/payment-done/',
+            'cancel_url': 'https://192.168.1.5:8000/accueil/',
         })
         pay_tech.setMobile(False)
         
@@ -432,96 +432,58 @@ def sendTicket(request):
     
     
 #Autre façon API 
+
+# Constantes pour les plages horaires
+PETIT_DEJ_START, PETIT_DEJ_END = 6, 11
+DEJEUNER_START, DEJEUNER_END = 12, 15
+DINER_START, DINER_END = 18, 23
+
 class EtudiantViewset(ReadOnlyModelViewSet):
     serializer_class = EtudiantSerializer
-    #queryset = Etudiant.objects.all()
     
     def get_queryset(self):
-         queryset = Etudiant.objects.all()  #annotate(nbre_tickets_repas=Count('ticket_repas')).values('id', 'code_permenant', 'first_name', 'last_name', 'nbre_tickets_repas')
-         return queryset
+        return Etudiant.objects.all()
     
-    
-    
-    #requete vers l'api 
+    def decrementer_ticket(self, etudiant, ticket_type, message):
+        if ticket_type == 'pdej':
+            tickets = Ticket_Dej.objects.filter(etudiant=etudiant)
+            decrement_method = etudiant.decrementer_ticket_dej
+        else:
+            tickets = Ticket_Repas.objects.filter(etudiant=etudiant)
+            decrement_method = etudiant.decrementer_ticket_repas
+        
+        if not tickets.exists():
+            return Response({"error": f"Aucun ticket {ticket_type}!!"}, status=status.HTTP_404_NOT_FOUND)
+        
+        nbre_tickets = max(ticket.nbre_tickets_dej if ticket_type == 'pdej' else ticket.nbre_tickets_repas for ticket in tickets)
+        if nbre_tickets <= 0:
+            return Response({"error": f"Aucun ticket {ticket_type}!!"}, status=status.HTTP_404_NOT_FOUND)
+        
+        decrement_method(1)
+        return Response({"message": message, "typeofticket": ticket_type})
+
     @action(detail=False, methods=['get'])
     def retrieve_by_code_permanent(self, request, pk=None):
-        # Récupérer l'étudiant en fonction de son code permanent
         try:
             etudiant = Etudiant.objects.get(code_qr_content=pk)
         except Etudiant.DoesNotExist:
-            return Response({'error': 'Etudiant(e) non trouve'},
-                    status=status.HTTP_404_NOT_FOUND)
+            return Response({"error": "Etudiant introuvable!!"}, status=status.HTTP_404_NOT_FOUND)
         
-        
-        heure = datetime.datetime.now().hour
-        
-        # Vérifiez si l'étudiant est bloque
         if not etudiant.is_active:
             return Response({"error": "Compte bloque !!"}, status=status.HTTP_403_FORBIDDEN)
 
-        #decrementer ticket dej
-        if (heure)>=6 and int(heure)<=11:
-            
-            try:
-                ticketDej =  Ticket_Dej.objects.filter(etudiant=etudiant)
-                if ticketDej.exists():
-                    nbre_tickets_dej_max = max(ticket.nbre_tickets_dej for ticket in ticketDej)
-                    if nbre_tickets_dej_max > 0:
-                        etudiant.decrementer_ticket_dej(1)
-                        #transaction = Transaction(description=f"Consommation d'un ticket Petit-déjeuner.", etudiant=etudiant)
-                        #transaction.save()
-                        return Response({"message": "Decrementation reussie!!","typeofticket":"pdej"})
-                    else:
-                        return Response({"error": "Aucun ticket petit-dejeuner!!"}, status=status.HTTP_404_NOT_FOUND)
-                else:
-                    return Response({"error": "Aucun ticket petit-dejeuner!!"}, status=status.HTTP_404_NOT_FOUND)
-            except Ticket_Dej.DoesNotExist:
-                return Response({'error': 'Aucun ticket petit-dejeuner!!'},
-                    status=status.HTTP_404_NOT_FOUND)
-        
-        
-        #decrementer ticket dejeuner 
-        elif (heure)>=12 and (heure)<=15 :
-                try:
-                    ticketRepas = Ticket_Repas.objects.filter(etudiant=etudiant)
-                    if ticketRepas.exists():
-                        nbre_tickets_repas_max = max(ticket.nbre_tickets_repas for ticket in ticketRepas)
-                        if nbre_tickets_repas_max > 0:
-                            etudiant.decrementer_ticket_repas(1)
-                            # transaction = Transaction(description=f"Consommation d'un ticket diner.", etudiant=etudiant)
-                            # transaction.save()
-                            return Response({"message": "Decrementation reussie !!", "typeofticket": "dej"})
-                        else:
-                            return Response({"error": "Aucun ticket dejeuner !!"}, status=status.HTTP_404_NOT_FOUND)
-                    else:
-                        return Response({"error": "Aucun ticket dejeuner !!"}, status=status.HTTP_404_NOT_FOUND)
-                except Ticket_Repas.DoesNotExist:
-                    return Response({"error": "Aucun ticket dejeuner !!"}, status=status.HTTP_404_NOT_FOUND)
-        
-         #decrementer ticket dinner           
-        elif (heure)>=18 and int(heure)<=23:
-            try:
-                ticketRepas = Ticket_Repas.objects.filter(etudiant=etudiant)
-                if ticketRepas.exists():
-                    nbre_tickets_repas_max = max(ticket.nbre_tickets_repas for ticket in ticketRepas)
-                    if nbre_tickets_repas_max > 0:
-                        etudiant.decrementer_ticket_repas(1)
-                        # transaction = Transaction(description=f"Consommation d'un ticket diner.", etudiant=etudiant)
-                        # transaction.save()
-                        return Response({"message": "Decrementation reussie !!", "typeofticket": "dinner"})
-                    else:
-                        return Response({"error": "Aucun ticket dejeuner !!"}, status=status.HTTP_404_NOT_FOUND)
-                else:
-                    return Response({"error": "Aucun ticket dejeuner !!"}, status=status.HTTP_404_NOT_FOUND)
-            except Ticket_Repas.DoesNotExist:
-                return Response({"error": "Aucun ticket dejeuner !!"}, status=status.HTTP_404_NOT_FOUND)
-        
+        heure_actuelle = timezone.now().hour
+
+        if PETIT_DEJ_START <= heure_actuelle <= PETIT_DEJ_END:
+            return self.decrementer_ticket(etudiant, 'pdej', "Decrementation reussie!!")
+        elif DEJEUNER_START <= heure_actuelle <= DEJEUNER_END:
+            return self.decrementer_ticket(etudiant, 'dej', "Decrementation reussie!!")
+        elif DINER_START <= heure_actuelle <= DINER_END:
+            return self.decrementer_ticket(etudiant, 'dinner', "Decrementation reussie!!")
         else:
-            return Response({"error": "Hors delai !!"}, status=status.HTTP_404_NOT_FOUND)
-              
-        # Sérialiser les détails de l'étudiant
+            return Response({"error": "Hors delai !!"}, status=status.HTTP_400_BAD_REQUEST)
+
         serializer = self.get_serializer(etudiant)
-        # Retourner les détails de l'étudiant dans la réponse
         return Response(serializer.data)
     
 @etudiant_required
@@ -544,58 +506,84 @@ def changeQrCode(request, pk):
     
     
 #TicketConsommer
+# class TicketConsommerViewset(APIView):
+#     serializer_class = TicketConsommerSerializer
+    
+#     def get_queryset(self):
+#          queryset = TicketConsommer.objects.all()  
+#          return queryset
+    
+#     def get(self, request, pk=None):
+#         try:
+#             personnel = Personnel.objects.get(identifiant=pk)
+#         except Personnel.DoesNotExist:
+#             return Response({'error': 'Personnel non trouvé'}, status=status.HTTP_404_NOT_FOUND)
+        
+#         tickets = self.get_queryset().filter(personnel=personnel)
+#         serializer = TicketConsommerSerializer(tickets, many=True)
+#         return Response(serializer.data)
+    
+    
+#     def post(self, request,pk=None):
+#         #identifiant = request.data.get('identifiant')
+#         type_ticket = request.data.get('type_ticket')
+#         quantity = request.data.get('quantity')
+        
+#         try:
+#             personnel = Personnel.objects.get(identifiant=pk)
+#         except Personnel.DoesNotExist:
+#             return Response({'error': 'Personnel non trouvé'}, status=status.HTTP_404_NOT_FOUND)
+            
+#         today = timezone.now().date()
+        
+#         # Vérifie si un ticket du même type a déjà été consommé aujourd'hui
+#         ticket_exist = TicketConsommer.objects.filter(personnel=personnel, type_ticket=type_ticket, date=today).first()
+        
+#         if ticket_exist:
+#             # Si un ticket existe, mettez simplement à jour la quantité
+#             ticket_exist.quantity += int(quantity)
+#             ticket_exist.save()
+#             serializer = TicketConsommerSerializer(ticket_exist)
+#             return Response(serializer.data, status=status.HTTP_200_OK)
+#         else:
+#             # Si aucun ticket n'existe, créez un nouveau ticket
+#             ticket = TicketConsommer(type_ticket=type_ticket, quantity=quantity, personnel=personnel, date=today)
+#             ticket.save()
+#             serializer = TicketConsommerSerializer(ticket)
+#             return Response(serializer.data, status=status.HTTP_201_CREATED)
+      
+               
+#TicketConsommer
 class TicketConsommerViewset(APIView):
     serializer_class = TicketConsommerSerializer
-    
+
     def get_queryset(self):
-         queryset = TicketConsommer.objects.all()  
-         return queryset
-    
+        return TicketConsommer.objects.all()
+
     def get(self, request, pk=None):
-        try:
-            personnel = Personnel.objects.get(identifiant=pk)
-        except Personnel.DoesNotExist:
-            return Response({'error': 'Personnel non trouvé'}, status=status.HTTP_404_NOT_FOUND)
-        
+        personnel = get_object_or_404(Personnel, identifiant=pk)
         tickets = self.get_queryset().filter(personnel=personnel)
-        serializer = TicketConsommerSerializer(tickets, many=True)
+        serializer = self.serializer_class(tickets, many=True)
         return Response(serializer.data)
-    
-    
-    def post(self, request,pk=None):
-        #identifiant = request.data.get('identifiant')
+
+    def post(self, request, pk=None):
+        personnel = get_object_or_404(Personnel, identifiant=pk)
         type_ticket = request.data.get('type_ticket')
-        quantity = request.data.get('quantity')
-        
-        try:
-            personnel = Personnel.objects.get(identifiant=pk)
-        except Personnel.DoesNotExist:
-            return Response({'error': 'Personnel non trouvé'}, status=status.HTTP_404_NOT_FOUND)
-            
+        quantity = int(request.data.get('quantity', 1))
         today = timezone.now().date()
-        
-        # Vérifie si un ticket du même type a déjà été consommé aujourd'hui
-        ticket_exist = TicketConsommer.objects.filter(personnel=personnel, type_ticket=type_ticket, date=today).first()
-        
-        if ticket_exist:
-            # Si un ticket existe, mettez simplement à jour la quantité
-            ticket_exist.quantity += int(quantity)
-            ticket_exist.save()
-            serializer = TicketConsommerSerializer(ticket_exist)
-            return Response(serializer.data, status=status.HTTP_200_OK)
-        else:
-            # Si aucun ticket n'existe, créez un nouveau ticket
-            ticket = TicketConsommer(type_ticket=type_ticket, quantity=quantity, personnel=personnel, date=today)
-            ticket.save()
-            serializer = TicketConsommerSerializer(ticket)
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-               
-    
-    
-                    
-    
-    
 
-        
-    
+        with transaction.atomic():
+            ticket, created = TicketConsommer.objects.get_or_create(
+                personnel=personnel,
+                type_ticket=type_ticket,
+                date=today,
+                defaults={'quantity': quantity}
+            )
 
+            if not created:
+                ticket.quantity += quantity
+                ticket.save()
+
+        serializer = self.serializer_class(ticket)
+        status_code = status.HTTP_201_CREATED if created else status.HTTP_200_OK
+        return Response(serializer.data, status=status_code)
