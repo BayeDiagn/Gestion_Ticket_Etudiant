@@ -142,9 +142,9 @@ def etudiant_home(request):
         pay_tech.setCurrency('XOF')
         pay_tech.setRefCommand(str(uuid.uuid4()))
         pay_tech.setNotificationUrl({
-            'ipn_url': 'https://192.168.1.5:8000/ipn',
-            'success_url': 'https://192.168.1.5:8000/payment-done/',
-            'cancel_url': 'https://192.168.1.5:8000/accueil/',
+            'ipn_url': 'https://192.168.1.8:8000/ipn',
+            'success_url': 'https://73f0-41-82-246-234.ngrok-free.app/payment-done/',
+            'cancel_url': 'https://73f0-41-82-246-234.ngrok-free.app/accueil/',
         })
         pay_tech.setMobile(False)
         
@@ -436,7 +436,7 @@ def sendTicket(request):
 # Constantes pour les plages horaires
 PETIT_DEJ_START, PETIT_DEJ_END = 6, 11
 DEJEUNER_START, DEJEUNER_END = 12, 15
-DINER_START, DINER_END = 18, 23
+DINER_START, DINER_END = 17, 23
 
 class EtudiantViewset(ReadOnlyModelViewSet):
     serializer_class = EtudiantSerializer

@@ -1,11 +1,7 @@
 from django.shortcuts import render
 
-import datetime
-import time
-import cv2
-from pyzbar.pyzbar import decode
 from django.shortcuts import render
-import qrcode
+
 
 from Etudiants.models import Etudiant
 from Tickets.models import Ticket_Dej, Ticket_Repas
