@@ -40,15 +40,15 @@ class ComportementEtudiant(TaskSet):
         user_id = random.randint(10000, 99999)
         self.client.get(f"/{user_id}/detail_etudiant/")
 
-    # @task(1)
-    # def envoyer_ticket(self):
-    #     """Simule l'action d'envoyer un ticket."""
-    #     self.client.post("/send_ticket/", {
-    #         # "cp": f"17{random.randint(10000, 99999)}",
-    #         "cp": "1702345",
-    #         "nbre_tickets": random.randint(1, 10),
-    #         "Typeofticket": random.choice(["dej", "repas"])
-    #     })
+    @task(1)
+    def envoyer_ticket(self):
+        """Simule l'action d'envoyer un ticket."""
+        self.client.post("/send_ticket/", {
+            # "cp": f"17{random.randint(10000, 99999)}",
+            "cp": "1702345",
+            "nbre_tickets": random.randint(1, 10),
+            "Typeofticket": random.choice(["dej", "repas"])
+        })
 
     @task(1)
     def changer_mot_de_passe(self):
